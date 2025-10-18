@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(npm install react react-dom)",
+      "Bash(npx astro add:*)",
+      "Bash(npm install:*)",
+      "Read(//d/**)",
+      "Bash(cat:*)",
+      "Bash(npm uninstall:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

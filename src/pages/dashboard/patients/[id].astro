@@ -1,0 +1,22 @@
+---
+import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
+import RouteGuard from '@/components/features/auth/RouteGuard';
+import QueryProvider from '@/components/providers/QueryProvider';
+import PatientDetail from '@/components/features/patients/PatientDetail';
+
+export function getStaticPaths() {
+  return [];
+}
+
+const { id } = Astro.params;
+---
+
+<DashboardLayout title="Detalle de Paciente">
+  <RouteGuard client:only="react">
+    <QueryProvider client:only="react">
+      <div class="container mx-auto max-w-6xl space-y-8 py-8">
+        <PatientDetail client:only="react" patientId={id!} />
+      </div>
+    </QueryProvider>
+  </RouteGuard>
+</DashboardLayout>

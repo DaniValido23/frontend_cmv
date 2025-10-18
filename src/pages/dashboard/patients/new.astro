@@ -1,0 +1,28 @@
+---
+import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
+import RouteGuard from '@/components/features/auth/RouteGuard';
+import QueryProvider from '@/components/providers/QueryProvider';
+import PatientForm from '@/components/features/patients/PatientForm';
+---
+
+<DashboardLayout title="Nuevo Paciente">
+  <RouteGuard client:only="react">
+    <QueryProvider client:only="react">
+      <div class="container mx-auto max-w-4xl space-y-8 py-8">
+        <PatientForm
+          client:only="react"
+          onSubmit={(data) => {
+            import('@/hooks/usePatients').then(({ useCreatePatient }) => {
+              const mutation = useCreatePatient();
+              mutation.mutate(data, {
+                onSuccess: () => {
+                  window.location.href = '/patients';
+                },
+              });
+            });
+          }}
+        />
+      </div>
+    </QueryProvider>
+  </RouteGuard>
+</DashboardLayout>

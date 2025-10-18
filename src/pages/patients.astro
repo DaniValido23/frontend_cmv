@@ -1,0 +1,17 @@
+---
+import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
+import PatientsPage from '@/components/pages/PatientsPage';
+---
+
+<DashboardLayout title="Pacientes">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-foreground">Pacientes</h1>
+      <p class="text-sm text-muted-foreground mt-1">
+        Gestiona la información de todos los pacientes registrados
+      </p>
+    </div>
+
+    <PatientsPage client:load />
+  </div>
+</DashboardLayout>

@@ -1,0 +1,30 @@
+---
+import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
+import RouteGuard from '@/components/features/auth/RouteGuard';
+import QueryProvider from '@/components/providers/QueryProvider';
+import ConsultationList from '@/components/features/consultations/ConsultationList';
+---
+
+<DashboardLayout title="Consultas">
+  <RouteGuard client:only="react">
+    <QueryProvider client:only="react">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold tracking-tight">Consultas Médicas</h1>
+            <p class="text-muted-foreground mt-1">Gestiona y visualiza todas las consultas médicas</p>
+          </div>
+          <a
+            href="/consultations/new"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Nueva Consulta
+          </a>
+        </div>
+
+        <ConsultationList client:only="react" />
+      </div>
+    </QueryProvider>
+  </RouteGuard>
+</DashboardLayout>

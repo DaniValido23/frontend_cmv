@@ -1,0 +1,25 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Sidebar from '@/components/features/navigation/Sidebar';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<BaseLayout title={title}>
+  <ErrorBoundary client:only="react">
+    <div class="flex h-screen bg-background">
+      <Sidebar client:load transition:name="sidebar" transition:persist />
+
+      <main class="flex-1 overflow-y-auto bg-muted/30">
+        <div class="container mx-auto px-6 py-8">
+          <slot />
+        </div>
+      </main>
+    </div>
+  </ErrorBoundary>
+</BaseLayout>

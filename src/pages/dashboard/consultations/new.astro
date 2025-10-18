@@ -1,0 +1,45 @@
+---
+import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
+import RouteGuard from '@/components/features/auth/RouteGuard';
+import QueryProvider from '@/components/providers/QueryProvider';
+import ConsultationForm from '@/components/features/consultations/ConsultationForm';
+
+const patientId = Astro.url.searchParams.get('patient_id');
+---
+
+<DashboardLayout title="Nueva Consulta">
+  <RouteGuard client:only="react">
+    <QueryProvider client:only="react">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold tracking-tight">Nueva Consulta</h1>
+            <p class="text-muted-foreground mt-1">Registra una nueva consulta médica</p>
+          </div>
+          <a
+            href="/consultations"
+            class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+            Volver a la lista
+          </a>
+        </div>
+
+        <ConsultationForm
+          client:only="react"
+          defaultPatientId={patientId || undefined}
+          onSubmit={(data) => {
+            import('@/hooks/useConsultations').then(({ useCreateConsultation }) => {
+              const mutation = useCreateConsultation();
+              mutation.mutate(data, {
+                onSuccess: () => {
+                  window.location.href = '/consultations';
+                },
+              });
+            });
+          }}
+        />
+      </div>
+    </QueryProvider>
+  </RouteGuard>
+</DashboardLayout>

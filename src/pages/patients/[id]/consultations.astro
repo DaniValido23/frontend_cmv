@@ -1,0 +1,18 @@
+---
+import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
+import PatientConsultationsPage from '@/components/pages/PatientConsultationsPage';
+
+export function getStaticPaths() {
+  return [];
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/patients');
+}
+---
+
+<DashboardLayout title="Consultas del Paciente">
+  <PatientConsultationsPage client:load patientId={id} />
+</DashboardLayout>

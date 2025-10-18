@@ -1,0 +1,12 @@
+Este archivo es un placeholder.
+
+Para crear los iconos PWA reales:
+1. Crea una imagen de 192x192 píxeles con tu logo médico
+2. Guarda como icon-192.png (elimina el .txt)
+3. Repite para icon-512.png
+
+Herramientas recomendadas:
+- https://realfavicongenerator.net/
+- https://www.favicon-generator.org/
+
+Mientras tanto, el sistema funcionará sin estos iconos.
