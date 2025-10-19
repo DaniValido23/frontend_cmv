@@ -2,6 +2,7 @@ import { useState } from "react";
 import { usePatients, useAllPatients } from "@/hooks/usePatients";
 import { useAuthStore } from "@/stores/authStore";
 import { isDoctor } from "@/lib/auth";
+import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import UpdatePatientModal from "./UpdatePatientModal";
@@ -11,6 +12,7 @@ import clsx from "clsx";
 export default function PatientsTable() {
   const user = useAuthStore((state) => state.user);
   const isDoctorUser = isDoctor(user);
+  const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export default function PatientsTable() {
   };
 
   const handleViewConsultations = (patientId: string) => {
-    window.location.href = `/patients/${patientId}/consultations`;
+    navigate(`/patients/${patientId}/consultations`);
   };
 
   if (isLoading) {

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { navigateTo } from "@/hooks/useNavigate";
 
 const API_URL = import.meta.env.PUBLIC_API_URL;
 
@@ -32,8 +33,9 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !isAuthRoute) {
       sessionStorage.clear();
-      window.location.href = "/login";
       toast.error("Sesión expirada. Inicia sesión nuevamente.");
+      // Usar navigateTo para mantener View Transitions
+      navigateTo("/login");
     }
 
     if (error.response?.status === 403) {

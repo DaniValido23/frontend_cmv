@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/stores/authStore";
+import { navigateTo } from "@/hooks/useNavigate";
 import WaitingRoomBoard from '@/components/features/waiting-room/WaitingRoomBoard';
 
 export default function WaitingRoomPage() {
@@ -18,7 +19,7 @@ export default function WaitingRoomPage() {
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = "/login";
+      navigateTo("/login");
     }
   }, [isLoading, isAuthenticated]);
 

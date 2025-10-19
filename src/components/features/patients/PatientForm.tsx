@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useNavigate } from "@/hooks/useNavigate";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -49,6 +50,7 @@ export default function PatientForm({
   onSubmit,
   isLoading,
 }: PatientFormProps) {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -74,7 +76,7 @@ export default function PatientForm({
         </div>
         <Button
           variant="outline"
-          onClick={() => (window.location.href = "/patients")}
+          onClick={() => navigate("/patients")}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Volver

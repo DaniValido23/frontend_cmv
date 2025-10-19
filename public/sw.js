@@ -1,64 +1,122 @@
-const CACHE_NAME = 'medical-clinic-v2';
-const urlsToCache = [
+// Version with timestamp for automatic cache invalidation
+const CACHE_VERSION = 'medical-clinic-v__BUILD_TIME__';
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+
+// Critical assets to precache
+const PRECACHE_URLS = [
   '/',
   '/login',
-  '/dashboard',
 ];
 
-// Install event - cache essential assets
+// Install event - precache critical assets and activate immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(STATIC_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// Activate event - clean up old caches and take control immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
+        cacheNames
+          .filter((cacheName) => cacheName.startsWith('medical-clinic-v') &&
+                                 cacheName !== STATIC_CACHE &&
+                                 cacheName !== DYNAMIC_CACHE)
+          .map((cacheName) => caches.delete(cacheName))
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - Network-first strategy for HTML, cache-first for static assets
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
   // Skip non-GET requests
-  if (event.request.method !== 'GET') {
+  if (request.method !== 'GET') {
     return;
   }
 
   // Skip API requests - always fetch from network
-  if (event.request.url.includes('/api/')) {
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Return cached version or fetch from network
-      return response || fetch(event.request).then((response) => {
-        // Cache new resources
-        if (response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
-        }
-        return response;
-      });
-    }).catch(() => {
-      // Return offline page if both cache and network fail
-      return caches.match('/');
-    })
-  );
+  // Determine caching strategy based on request type
+  const isStaticAsset = /\.(js|css|png|jpg|jpeg|svg|gif|woff|woff2|ttf|ico)$/i.test(url.pathname);
+
+  if (isStaticAsset) {
+    // Cache-first for static assets (faster loading)
+    event.respondWith(cacheFirstStrategy(request));
+  } else {
+    // Network-first for HTML and dynamic content (always fresh)
+    event.respondWith(networkFirstStrategy(request));
+  }
+});
+
+// Network-first strategy: Try network, fallback to cache, then offline page
+async function networkFirstStrategy(request) {
+  try {
+    const networkResponse = await fetch(request);
+
+    // Cache successful responses
+    if (networkResponse.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+
+    return networkResponse;
+  } catch (error) {
+    // Network failed, try cache
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    // If it's a navigation request and we have no cache, return home page
+    if (request.mode === 'navigate') {
+      const homeCache = await caches.match('/');
+      if (homeCache) {
+        return homeCache;
+      }
+    }
+
+    // Nothing worked, throw error
+    throw error;
+  }
+}
+
+// Cache-first strategy: Try cache, fallback to network
+async function cacheFirstStrategy(request) {
+  const cachedResponse = await caches.match(request);
+
+  if (cachedResponse) {
+    return cachedResponse;
+  }
+
+  try {
+    const networkResponse = await fetch(request);
+
+    if (networkResponse.ok) {
+      const cache = await caches.open(STATIC_CACHE);
+      cache.put(request, networkResponse.clone());
+    }
+
+    return networkResponse;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Listen for messages from clients to skip waiting
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });

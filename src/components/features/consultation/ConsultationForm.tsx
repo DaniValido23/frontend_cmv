@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useActiveConsultation, useChangeWaitingRoomStatus } from "@/hooks/useWaitingRoom";
 import { useCreateConsultation, useGeneratePrescription, useUploadAttachment } from "@/hooks/useConsultations";
 import { useUpdatePreConsultation } from "@/hooks/usePreConsultations";
+import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Spinner from "@/components/ui/Spinner";
@@ -354,7 +355,7 @@ export default function ConsultationForm() {
         {
           onSuccess: () => {
             setShowCancelModal(false);
-            window.location.href = "/waiting-room";
+            navigate("/waiting-room");
           },
         }
       );

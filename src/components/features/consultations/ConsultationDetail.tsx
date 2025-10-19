@@ -7,6 +7,7 @@ import {
   useAddAttachment,
 } from "@/hooks/useConsultations";
 import { usePatient } from "@/hooks/usePatients";
+import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
@@ -94,7 +95,7 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
       {
         onSuccess: () => {
           setShowCompleteModal(false);
-          window.location.href = "/consultations";
+          navigate("/consultations");
         },
       }
     );
@@ -130,7 +131,7 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
     return (
       <div className="text-center py-12">
         <p className="text-red-600">Consulta no encontrada</p>
-        <Button onClick={() => (window.location.href = "/consultations")} className="mt-4">
+        <Button onClick={() => navigate("/consultations")} className="mt-4">
           Volver a la lista
         </Button>
       </div>

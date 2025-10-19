@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useConsultations, useDeleteConsultation } from "@/hooks/useConsultations";
 import { usePatients } from "@/hooks/usePatients";
+import { useNavigate } from "@/hooks/useNavigate";
 import {
   Table,
   TableBody,
@@ -167,7 +168,7 @@ export default function ConsultationList() {
                         size="sm"
                         variant="ghost"
                         onClick={() =>
-                          (window.location.href = `/consultations/${consultation.id}`)
+                          navigate(`/consultations/${consultation.id}`)
                         }
                       >
                         <Eye className="h-4 w-4 mr-1" />

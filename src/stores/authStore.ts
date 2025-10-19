@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { User } from "@/types/auth";
 import { api } from "@/lib/api";
+import { navigateTo } from "@/hooks/useNavigate";
 
 interface AuthState {
   user: User | null;
@@ -53,7 +54,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
       set({ token: null, user: null, isAuthenticated: false });
-      window.location.href = "/login";
+      // Usar navigateTo para mantener View Transitions
+      navigateTo("/login");
     }
   },
 

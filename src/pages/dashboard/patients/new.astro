@@ -12,11 +12,14 @@ import PatientForm from '@/components/features/patients/PatientForm';
         <PatientForm
           client:only="react"
           onSubmit={(data) => {
-            import('@/hooks/usePatients').then(({ useCreatePatient }) => {
+            Promise.all([
+              import('@/hooks/usePatients'),
+              import('@/hooks/useNavigate')
+            ]).then(([{ useCreatePatient }, { navigateTo }]) => {
               const mutation = useCreatePatient();
               mutation.mutate(data, {
                 onSuccess: () => {
-                  window.location.href = '/patients';
+                  navigateTo('/patients');
                 },
               });
             });

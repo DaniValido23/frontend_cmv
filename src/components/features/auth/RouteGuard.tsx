@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { canAccessRoute } from "@/lib/auth";
+import { navigateTo } from "@/hooks/useNavigate";
 
 interface RouteGuardProps {
   requiredRole?: "doctor" | "assistant";
@@ -27,20 +28,20 @@ export default function RouteGuard({ requiredRole, children }: RouteGuardProps) 
 
     // Check authentication
     if (!isAuthenticated) {
-      window.location.href = "/login";
+      navigateTo("/login");
       return;
     }
 
     // Check role if required
     if (requiredRole && user?.role !== requiredRole) {
-      window.location.href = "/waiting-room";
+      navigateTo("/waiting-room");
       return;
     }
 
     // Check route access
     const currentPath = window.location.pathname;
     if (!canAccessRoute(user, currentPath)) {
-      window.location.href = "/waiting-room";
+      navigateTo("/waiting-room");
     }
   }, [isLoading, isAuthenticated, user, requiredRole]);
 

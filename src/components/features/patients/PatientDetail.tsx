@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { usePatient, useUpdatePatient } from "@/hooks/usePatients";
+import { useNavigate } from "@/hooks/useNavigate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -31,6 +32,7 @@ export default function PatientDetail({ patientId }: PatientDetailProps) {
   const { data: patient, isLoading } = usePatient(patientId);
   const updateMutation = useUpdatePatient();
   const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -51,7 +53,7 @@ export default function PatientDetail({ patientId }: PatientDetailProps) {
           El paciente que buscas no existe o fue eliminado
         </p>
         <Button
-          onClick={() => (window.location.href = "/patients")}
+          onClick={() => navigate("/patients")}
           className="mt-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -86,7 +88,7 @@ export default function PatientDetail({ patientId }: PatientDetailProps) {
           <Button
             variant="outline"
             size="icon"
-            onClick={() => (window.location.href = "/patients")}
+            onClick={() => navigate("/patients")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -105,9 +107,7 @@ export default function PatientDetail({ patientId }: PatientDetailProps) {
             Editar
           </Button>
           <Button
-            onClick={() =>
-              (window.location.href = `/consultations/new?patient_id=${patientId}`)
-            }
+            onClick={() => navigate(`/consultations/new?patient_id=${patientId}`)}
           >
             <FileText className="mr-2 h-4 w-4" />
             Nueva Consulta

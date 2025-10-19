@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useAllPatients } from "@/hooks/usePatients";
 import { useCreatePreConsultation } from "@/hooks/usePreConsultations";
 import { useAddToWaitingRoom } from "@/hooks/useWaitingRoom";
+import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Autocomplete from "@/components/ui/Autocomplete";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import type { Patient } from "@/types/models";
 
 export default function PreConsultationForm() {
+  const navigate = useNavigate();
   const { data: patients = [], isLoading: loadingPatients } = useAllPatients();
   const createPreConsultationMutation = useCreatePreConsultation();
   const addToWaitingRoomMutation = useAddToWaitingRoom();
@@ -107,7 +109,7 @@ export default function PreConsultationForm() {
         addToWaitingRoomMutation.mutate(waitingRoomData, {
           onSuccess: () => {
             // Redirigir directamente a sala de espera sin toast
-            window.location.href = "/waiting-room";
+            navigate("/waiting-room");
           },
           onError: () => {
             toast.error("Pre-consulta creada pero hubo un error al agregar a la sala de espera");
@@ -364,7 +366,7 @@ export default function PreConsultationForm() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => window.location.href = "/waiting-room"}
+              onClick={() => navigate("/waiting-room")}
               disabled={isSubmitting}
               className="w-full sm:w-auto"
             >

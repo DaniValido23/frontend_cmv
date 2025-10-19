@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "astro dev",
     "start": "node ./dist/server/entry.mjs",
+    "prebuild": "node scripts/inject-sw-version.js",
     "build": "astro build",
+    "postbuild": "node scripts/restore-sw-version.js",
     "preview": "astro preview",
     "astro": "astro"
   },

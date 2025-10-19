@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { LogIn, Shield, Eye, EyeOff } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
 import { api } from "@/lib/api";
+import { useNavigate } from "@/hooks/useNavigate";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -27,6 +28,7 @@ export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
 
   const setAuth = useAuthStore((state) => state.setAuth);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -86,7 +88,7 @@ export default function LoginForm() {
 
       if (response.data.success) {
         setAuth(response.data.data.token, response.data.data.user);
-        window.location.href = "/waiting-room";
+        navigate("/waiting-room");
       }
     } catch (error: any) {
       throw error;

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAllPatients, useDeletePatient } from "@/hooks/usePatients";
+import { useNavigate } from "@/hooks/useNavigate";
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ export default function PatientList() {
   const { data: patients, isLoading } = useAllPatients();
   const deleteMutation = useDeletePatient();
   const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
 
   const filteredPatients = patients?.filter(
     (patient) =>
@@ -58,7 +60,7 @@ export default function PatientList() {
           </p>
         </div>
         <Button
-          onClick={() => (window.location.href = "/patients/new")}
+          onClick={() => navigate("/patients/new")}
           size="lg"
         >
           <UserPlus className="mr-2 h-4 w-4" />
@@ -174,9 +176,7 @@ export default function PatientList() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() =>
-                            (window.location.href = `/patients/${patient.id}`)
-                          }
+                          onClick={() => navigate(`/patients/${patient.id}`)}
                         >
                           <Eye className="mr-1 h-3 w-3" />
                           Ver
@@ -221,9 +221,7 @@ export default function PatientList() {
               {!searchTerm && (
                 <Button
                   className="mt-4"
-                  onClick={() =>
-                    (window.location.href = "/patients/new")
-                  }
+                  onClick={() => navigate("/patients/new")}
                 >
                   <UserPlus className="mr-2 h-4 w-4" />
                   Crear Primer Paciente

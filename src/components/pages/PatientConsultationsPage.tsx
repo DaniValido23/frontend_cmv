@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useAuthStore } from "@/stores/authStore";
+import { navigateTo } from "@/hooks/useNavigate";
 import { usePatientConsultations } from "@/hooks/useConsultations";
 import { usePatient } from "@/hooks/usePatients";
 import Card from '@/components/ui/Card';
@@ -50,7 +51,7 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
       <div className="flex items-center justify-between">
         <div>
           <button
-            onClick={() => window.location.href = '/patients'}
+            onClick={() => navigateTo('/patients')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -187,7 +188,7 @@ export default function PatientConsultationsPage({ patientId }: PatientConsultat
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      window.location.href = "/login";
+      navigateTo("/login");
     }
   }, [isLoading, isAuthenticated]);
 

@@ -29,11 +29,14 @@ const patientId = Astro.url.searchParams.get('patient_id');
           client:only="react"
           defaultPatientId={patientId || undefined}
           onSubmit={(data) => {
-            import('@/hooks/useConsultations').then(({ useCreateConsultation }) => {
+            Promise.all([
+              import('@/hooks/useConsultations'),
+              import('@/hooks/useNavigate')
+            ]).then(([{ useCreateConsultation }, { navigateTo }]) => {
               const mutation = useCreateConsultation();
               mutation.mutate(data, {
                 onSuccess: () => {
-                  window.location.href = '/consultations';
+                  navigateTo('/consultations');
                 },
               });
             });
