@@ -88,7 +88,9 @@ export default function TwoFactorSetup() {
             <Card>
               <CardContent className="flex justify-center p-6">
                 <div className="bg-card p-4 rounded-lg border">
-                  <QRCode value={qrCode} size={200} />
+                  <div className="w-full max-w-[200px] sm:max-w-[250px] mx-auto">
+                    <QRCode value={qrCode} size={200} className="w-full h-auto" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -171,7 +173,7 @@ export default function TwoFactorSetup() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {backupCodes.map((code, i) => (
                     <div
                       key={i}

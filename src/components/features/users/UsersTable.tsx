@@ -96,11 +96,12 @@ export default function UsersTable() {
     <div className="space-y-4">
       {/* Barra de acciones */}
       <Card className="p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0">
           <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing}
+            className="w-full sm:w-auto"
           >
             <RefreshCw className={clsx('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
             Actualizar
@@ -108,6 +109,7 @@ export default function UsersTable() {
 
           <Button
             onClick={() => setShowCreateModal(true)}
+            className="w-full sm:w-auto"
           >
             <UserPlus className="h-4 w-4 mr-2" />
             Nuevo Usuario
@@ -126,15 +128,15 @@ export default function UsersTable() {
           </Card>
         ) : (
           users.map((user) => (
-            <Card key={user.id} className="p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between gap-6">
+            <Card key={user.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
                 {/* Avatar */}
-                <div className="bg-primary/10 p-3 rounded-lg shrink-0">
+                <div className="bg-primary/10 p-3 rounded-lg shrink-0 self-start sm:self-center">
                   <UserIcon className="h-6 w-6 text-primary" />
                 </div>
 
                 {/* Información del usuario */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {/* Nombre y Username */}
                   <div className="space-y-1">
                     <h3 className="font-semibold text-base text-foreground">
@@ -186,34 +188,34 @@ export default function UsersTable() {
                 </div>
 
                 {/* Botones de acción */}
-                <div className="flex flex-col gap-2 shrink-0">
+                <div className="flex flex-row sm:flex-col gap-2 shrink-0">
                   <Button
                     onClick={() => handleEdit(user)}
-                    className="bg-primary/70 hover:bg-primary/80 text-primary-foreground whitespace-nowrap"
+                    className="bg-primary/70 hover:bg-primary/80 text-primary-foreground whitespace-nowrap flex-1 sm:flex-none"
                     size="sm"
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar
+                    <Edit className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Editar</span>
                   </Button>
 
                   <Button
                     onClick={() => handleToggleStatus(user)}
                     variant={user.active ? 'destructive' : 'default'}
                     className={clsx(
-                      'whitespace-nowrap',
+                      'whitespace-nowrap flex-1 sm:flex-none',
                       !user.active && 'bg-success/70 hover:bg-success/80 text-success-foreground'
                     )}
                     size="sm"
                   >
                     {user.active ? (
                       <>
-                        <UserX className="h-4 w-4 mr-2" />
-                        Desactivar
+                        <UserX className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Desactivar</span>
                       </>
                     ) : (
                       <>
-                        <UserCheck className="h-4 w-4 mr-2" />
-                        Activar
+                        <UserCheck className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Activar</span>
                       </>
                     )}
                   </Button>

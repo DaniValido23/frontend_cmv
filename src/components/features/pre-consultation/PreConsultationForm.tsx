@@ -121,15 +121,15 @@ export default function PreConsultationForm() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Pre-Consulta</h1>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Pre-Consulta</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Registra los signos vitales del paciente y agrégalo a la sala de espera
         </p>
       </div>
 
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <Card className="p-4 sm:p-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Selección de Paciente */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -138,7 +138,7 @@ export default function PreConsultationForm() {
                 Paciente
               </div>
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Autocomplete
                 value={patientSearch}
                 onChange={setPatientSearch}
@@ -150,10 +150,11 @@ export default function PreConsultationForm() {
               <Button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                className="bg-success hover:bg-success/90 text-success-foreground shrink-0"
+                className="bg-success hover:bg-success/90 text-success-foreground shrink-0 w-full sm:w-auto"
                 title="Agregar nuevo paciente"
               >
-                <UserPlus className="h-4 w-4" />
+                <UserPlus className="h-4 w-4 sm:mr-0" />
+                <span className="sm:hidden ml-2">Agregar Paciente</span>
               </Button>
             </div>
             {selectedPatient && (
@@ -179,7 +180,7 @@ export default function PreConsultationForm() {
               <span className="text-xs text-muted-foreground ml-auto">(Opcionales)</span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* Temperatura */}
               <div>
                 <label className="block text-sm font-medium mb-2">
@@ -359,10 +360,19 @@ export default function PreConsultationForm() {
           </div>
 
           {/* Botón de envío */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => window.location.href = "/waiting-room"}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto"
+            >
+              Cancelar
+            </Button>
             <Button
               type="submit"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
               disabled={isSubmitting}
             >
               {createPreConsultationMutation.isPending
@@ -370,14 +380,6 @@ export default function PreConsultationForm() {
                 : addToWaitingRoomMutation.isPending
                   ? "Agregando a sala de espera..."
                   : "Registrar y Agregar a Sala de Espera"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => window.location.href = "/waiting-room"}
-              disabled={isSubmitting}
-            >
-              Cancelar
             </Button>
           </div>
         </form>

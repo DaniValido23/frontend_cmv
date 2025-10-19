@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePatients, useDeletePatient } from "@/hooks/usePatients";
+import { useAllPatients, useDeletePatient } from "@/hooks/usePatients";
 import {
   Table,
   TableBody,
@@ -28,7 +28,7 @@ import { es } from "date-fns/locale";
 import type { Patient } from "@/types/models";
 
 export default function PatientList() {
-  const { data: patients, isLoading } = usePatients();
+  const { data: patients, isLoading } = useAllPatients();
   const deleteMutation = useDeletePatient();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -157,7 +157,7 @@ export default function PatientList() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">
-                        {patient.gender === "male" ? "Masculino" : "Femenino"}
+                        {patient.gender}
                       </Badge>
                     </TableCell>
                     <TableCell>

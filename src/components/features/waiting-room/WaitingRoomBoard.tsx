@@ -98,13 +98,9 @@ export default function WaitingRoomBoard() {
     );
   }
 
-  // Sort by priority (urgent first) and then by arrival time
+  // Sort strictly by arrival time (FIFO - First In First Out)
+  // Priority is shown visually but doesn't affect queue order
   const sortedWaitingRoom = [...(waitingRoom || [])].sort((a, b) => {
-    const isUrgentA = a.priority.toLowerCase() === "urgente" || a.priority.toLowerCase() === "urgent";
-    const isUrgentB = b.priority.toLowerCase() === "urgente" || b.priority.toLowerCase() === "urgent";
-
-    if (isUrgentA && !isUrgentB) return -1;
-    if (!isUrgentA && isUrgentB) return 1;
     return new Date(a.arrival_time).getTime() - new Date(b.arrival_time).getTime();
   });
 
@@ -113,9 +109,9 @@ export default function WaitingRoomBoard() {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Consultas del día */}
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Consultas del Día</p>
@@ -134,7 +130,7 @@ export default function WaitingRoomBoard() {
         </Card>
 
         {/* Pacientes en espera */}
-        <Card className="p-6">
+        <Card className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Pacientes en Espera</p>
@@ -154,7 +150,7 @@ export default function WaitingRoomBoard() {
 
         {/* Ingresos del día - solo para doctores */}
         {user?.role === "doctor" && (
-          <Card className="p-6">
+          <Card className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ingresos del Día</p>
@@ -175,16 +171,16 @@ export default function WaitingRoomBoard() {
       </div>
 
       {/* Lista de pacientes en sala de espera */}
-      <Card className="h-[calc(100vh-400px)] min-h-[400px]">
+      <Card className="min-h-[400px] lg:h-[calc(100vh-400px)]">
         <div className="h-full flex flex-col">
-          <div className="flex items-center gap-2 p-6 pb-4">
+          <div className="flex items-center gap-2 p-4 pb-3 sm:p-6 sm:pb-4">
             <Users className="h-5 w-5 text-muted-foreground" />
             <h3 className="font-semibold text-lg">Pacientes en Sala de Espera</h3>
             <Badge variant="secondary">{waitingPatients.length}</Badge>
           </div>
           <Separator />
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             {waitingPatients.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -202,16 +198,16 @@ export default function WaitingRoomBoard() {
                 {waitingPatients.map((entry) => (
                   <div
                     key={entry.id}
-                    className={`p-4 border rounded-lg hover:shadow-md transition-shadow ${getPriorityColor(entry.priority)}`}
+                    className={`p-3 sm:p-4 border rounded-lg hover:shadow-md transition-shadow ${getPriorityColor(entry.priority)}`}
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <h3 className="font-semibold">{entry.patient.full_name}</h3>
+                          <h3 className="font-semibold text-sm sm:text-base">{entry.patient.full_name}</h3>
                           <span className="text-xs text-muted-foreground">({entry.patient.age} años)</span>
                         </div>
-                        <div className="flex flex-col gap-1 ml-6 text-xs text-muted-foreground">
+                        <div className="flex flex-col gap-1 sm:ml-6 text-xs text-muted-foreground">
                           <p>
                             <strong>Sexo:</strong> {getGenderLabel(entry.patient.gender)}
                           </p>
@@ -221,7 +217,7 @@ export default function WaitingRoomBoard() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2 ml-4">
+                      <div className="flex flex-row sm:flex-col gap-2 sm:ml-4">
                         {user?.role === "doctor" && (
                           <Button
                             size="sm"

@@ -11,7 +11,7 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const response = await api.get("/dashboard/stats");
+      const response = await api.get("/analytics/dashboard");
       return response.data.data as DashboardStats;
     },
     refetchInterval: 60000, // Auto-refresh every 60 seconds

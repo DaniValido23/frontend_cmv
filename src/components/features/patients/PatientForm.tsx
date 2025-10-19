@@ -63,7 +63,7 @@ export default function PatientForm({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             {initialData ? "Editar Paciente" : "Nuevo Paciente"}
           </h1>
           <p className="text-muted-foreground">
@@ -91,7 +91,7 @@ export default function PatientForm({
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
               <div className="md:col-span-2 space-y-2">
                 <Label htmlFor="full_name">
                   Nombre Completo <span className="text-destructive">*</span>
@@ -143,7 +143,7 @@ export default function PatientForm({
 
             <Separator />
 
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="phone">Teléfono</Label>
                 <div className="relative">
@@ -254,7 +254,7 @@ export default function PatientForm({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="emergency_contact_name">
                   Nombre del Contacto

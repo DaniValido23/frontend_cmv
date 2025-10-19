@@ -52,14 +52,14 @@ export default function QuickActions() {
         <CardTitle>Acciones Rápidas</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {actions.map((action) => {
             const Icon = action.icon;
             return (
               <a
                 key={action.href}
                 href={action.href}
-                className="group relative overflow-hidden rounded-lg border bg-background p-5 transition-all hover:border-primary hover:shadow-md"
+                className="group relative overflow-hidden rounded-lg border bg-background p-4 sm:p-5 transition-all hover:border-primary hover:shadow-md"
               >
                 <div className="flex flex-col space-y-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted transition-colors group-hover:bg-primary/10">

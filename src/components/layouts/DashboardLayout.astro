@@ -16,7 +16,7 @@ const { title } = Astro.props;
       <Sidebar client:load transition:name="sidebar" transition:persist />
 
       <main class="flex-1 overflow-y-auto bg-muted/30">
-        <div class="container mx-auto px-6 py-8">
+        <div class="container mx-auto px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
           <slot />
         </div>
       </main>

@@ -96,15 +96,15 @@ export default function PatientsTable() {
           </Card>
         ) : (
           displayedPatients.map((patient) => (
-            <Card key={patient.id} className="p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between gap-6">
+            <Card key={patient.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
                 {/* Avatar */}
-                <div className="bg-primary/10 p-3 rounded-lg shrink-0">
+                <div className="bg-primary/10 p-3 rounded-lg shrink-0 self-start sm:self-center">
                   <User className="h-6 w-6 text-primary" />
                 </div>
 
                 {/* Información del paciente */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {/* Nombre y Edad */}
                   <div className="space-y-1">
                     <h3 className="font-semibold text-base text-foreground">
@@ -146,23 +146,25 @@ export default function PatientsTable() {
                 </div>
 
                 {/* Botones de acción */}
-                <div className="flex flex-col gap-2 shrink-0">
+                <div className="flex flex-row sm:flex-col gap-2 shrink-0">
                   {isDoctorUser && (
                     <Button
                       onClick={() => handleViewConsultations(patient.id)}
-                      className="bg-success/70 hover:bg-success/80 text-success-foreground whitespace-nowrap"
+                      className="bg-success/70 hover:bg-success/80 text-success-foreground whitespace-nowrap flex-1 sm:flex-none"
+                      size="sm"
                     >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Ver Consultas
+                      <FileText className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Ver Consultas</span>
                     </Button>
                   )}
 
                   <Button
                     onClick={() => handleUpdateClick(patient.id)}
-                    className="bg-primary/70 hover:bg-primary/80 text-primary-foreground whitespace-nowrap"
+                    className="bg-primary/70 hover:bg-primary/80 text-primary-foreground whitespace-nowrap flex-1 sm:flex-none"
+                    size="sm"
                   >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Actualizar
+                    <Edit className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Actualizar</span>
                   </Button>
                 </div>
               </div>
@@ -173,12 +175,12 @@ export default function PatientsTable() {
 
       {/* Paginación - Solo mostrar si NO hay búsqueda activa */}
       {!isSearching && meta && meta.total_pages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <div className="text-sm text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+          <div className="text-sm text-muted-foreground text-center sm:text-left">
             Mostrando {displayedPatients.length} de {meta.total_items} pacientes
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-center">
             <Button
               variant="outline"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}

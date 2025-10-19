@@ -18,12 +18,42 @@ import type { VitalSigns } from "@/types/models";
 
 const vitalSignsSchema = z.object({
   blood_pressure: z.string().optional(),
-  heart_rate: z.coerce.number().min(30).max(250).optional().or(z.literal("")),
-  temperature: z.coerce.number().min(30).max(45).optional().or(z.literal("")),
-  respiratory_rate: z.coerce.number().min(5).max(60).optional().or(z.literal("")),
-  oxygen_saturation: z.coerce.number().min(0).max(100).optional().or(z.literal("")),
-  weight: z.coerce.number().min(0).max(500).optional().or(z.literal("")),
-  height: z.coerce.number().min(0).max(300).optional().or(z.literal("")),
+  heart_rate: z.coerce
+    .number({ invalid_type_error: "Frecuencia cardíaca debe ser un número" })
+    .min(30, "Frecuencia cardíaca debe ser mayor a 30 lpm")
+    .max(250, "Frecuencia cardíaca debe ser menor a 250 lpm")
+    .optional()
+    .or(z.literal("")),
+  temperature: z.coerce
+    .number({ invalid_type_error: "Temperatura debe ser un número" })
+    .min(30, "Temperatura debe ser mayor a 30°C")
+    .max(45, "Temperatura debe ser menor a 45°C")
+    .optional()
+    .or(z.literal("")),
+  respiratory_rate: z.coerce
+    .number({ invalid_type_error: "Frecuencia respiratoria debe ser un número" })
+    .min(5, "Frecuencia respiratoria debe ser mayor a 5 rpm")
+    .max(60, "Frecuencia respiratoria debe ser menor a 60 rpm")
+    .optional()
+    .or(z.literal("")),
+  oxygen_saturation: z.coerce
+    .number({ invalid_type_error: "Saturación de oxígeno debe ser un número" })
+    .min(0, "Saturación de oxígeno debe ser mayor a 0%")
+    .max(100, "Saturación de oxígeno debe ser menor o igual a 100%")
+    .optional()
+    .or(z.literal("")),
+  weight: z.coerce
+    .number({ invalid_type_error: "Peso debe ser un número" })
+    .min(0, "Peso debe ser mayor a 0 kg")
+    .max(500, "Peso debe ser menor a 500 kg")
+    .optional()
+    .or(z.literal("")),
+  height: z.coerce
+    .number({ invalid_type_error: "Altura debe ser un número" })
+    .min(0, "Altura debe ser mayor a 0 cm")
+    .max(300, "Altura debe ser menor a 300 cm")
+    .optional()
+    .or(z.literal("")),
 });
 
 type VitalSignsFormData = z.infer<typeof vitalSignsSchema>;
@@ -51,10 +81,10 @@ export default function VitalSignsForm({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Activity className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Presión Arterial</h3>
@@ -73,7 +103,7 @@ export default function VitalSignsForm({
         </Card>
 
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Heart className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Frecuencia Cardíaca</h3>
@@ -93,7 +123,7 @@ export default function VitalSignsForm({
         </Card>
 
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Thermometer className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Temperatura</h3>
@@ -114,7 +144,7 @@ export default function VitalSignsForm({
         </Card>
 
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Wind className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Frecuencia Respiratoria</h3>
@@ -134,7 +164,7 @@ export default function VitalSignsForm({
         </Card>
 
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Droplet className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Saturación de Oxígeno</h3>
@@ -154,7 +184,7 @@ export default function VitalSignsForm({
         </Card>
 
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Weight className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Peso</h3>
@@ -175,7 +205,7 @@ export default function VitalSignsForm({
         </Card>
 
         <Card>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Ruler className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Altura</h3>
@@ -195,13 +225,13 @@ export default function VitalSignsForm({
         </Card>
       </div>
 
-      <div className="flex gap-3 justify-end">
+      <div className="flex flex-col-reverse sm:flex-row gap-3 sm:justify-end">
         {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} className="w-full sm:w-auto">
             Cancelar
           </Button>
         )}
-        <Button type="submit" isLoading={isLoading}>
+        <Button type="submit" isLoading={isLoading} className="w-full sm:w-auto">
           Guardar Signos Vitales
         </Button>
       </div>

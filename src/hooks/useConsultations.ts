@@ -142,9 +142,39 @@ export function useAddVitalSigns() {
       toast.success("Signos vitales registrados exitosamente");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al registrar signos vitales");
+      const backendErrors = error.response?.data?.errors;
+
+      // Si hay errores de validación específicos del backend
+      if (backendErrors && typeof backendErrors === 'object') {
+        const errorMessages = Object.entries(backendErrors)
+          .map(([field, messages]) => {
+            const fieldName = getFieldName(field);
+            const msgArray = Array.isArray(messages) ? messages : [messages];
+            return `${fieldName}: ${msgArray.join(', ')}`;
+          })
+          .join('\n');
+
+        toast.error(errorMessages || "Error de validación en signos vitales");
+      } else {
+        // Mensaje genérico si no hay errores específicos
+        toast.error(error.response?.data?.message || "Error al registrar signos vitales");
+      }
     },
   });
+}
+
+// Helper para traducir nombres de campos
+function getFieldName(field: string): string {
+  const fieldNames: Record<string, string> = {
+    blood_pressure: "Presión arterial",
+    heart_rate: "Frecuencia cardíaca",
+    temperature: "Temperatura",
+    respiratory_rate: "Frecuencia respiratoria",
+    oxygen_saturation: "Saturación de oxígeno",
+    weight: "Peso",
+    height: "Altura",
+  };
+  return fieldNames[field] || field;
 }
 
 // Add attachment
