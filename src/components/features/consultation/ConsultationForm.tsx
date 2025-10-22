@@ -20,6 +20,7 @@ import { frequentSymptoms } from "@/data/symp_frecuent";
 import { frequentDiagnoses } from "@/data/diagnosis_frecuent";
 import { frequentMedicaments } from "@/data/prescribed_medicaments";
 import { frequentDosages } from "@/data/dosage_frecuent";
+import { frequentRoutes } from "@/data/route_frecuent";
 import { frequentFrequencies } from "@/data/frequency_frecuent";
 import { frequentDurations } from "@/data/duration_frecuent";
 import Autocomplete from "@/components/ui/Autocomplete";
@@ -27,11 +28,13 @@ import Autocomplete from "@/components/ui/Autocomplete";
 interface Medication {
   name: string;
   dosage: string;
+  route: string;
   frequency: string;
   duration: string;
 }
 
 export default function ConsultationForm() {
+  const navigate = useNavigate();
   const { data: consultation, isLoading } = useActiveConsultation();
   const changeStatusMutation = useChangeWaitingRoomStatus();
   const createConsultationMutation = useCreateConsultation();
@@ -52,6 +55,8 @@ export default function ConsultationForm() {
     height: "",
   });
 
+  const [currentMedications, setCurrentMedications] = useState("");
+
   // Estados para los campos de la consulta
   const [symptoms, setSymptoms] = useState<string[]>([]);
   const [currentSymptom, setCurrentSymptom] = useState("");
@@ -61,6 +66,7 @@ export default function ConsultationForm() {
   const [currentMedication, setCurrentMedication] = useState<Medication>({
     name: "",
     dosage: "",
+    route: "",
     frequency: "",
     duration: "",
   });
@@ -98,6 +104,13 @@ export default function ConsultationForm() {
       d.toLowerCase().includes(currentMedication.dosage.toLowerCase())
     ).slice(0, 5);
   }, [currentMedication.dosage]);
+
+  const routeSuggestions = useMemo(() => {
+    if (!currentMedication.route.trim()) return [];
+    return frequentRoutes.filter(r =>
+      r.toLowerCase().includes(currentMedication.route.toLowerCase())
+    ).slice(0, 5);
+  }, [currentMedication.route]);
 
   const frequencySuggestions = useMemo(() => {
     if (!currentMedication.frequency.trim()) return [];
@@ -141,6 +154,7 @@ export default function ConsultationForm() {
       setCurrentMedication({
         name: "",
         dosage: "",
+        route: "",
         frequency: "",
         duration: "",
       });
@@ -207,23 +221,44 @@ export default function ConsultationForm() {
 
   // Inicializar signos vitales editables cuando se carga la consulta
   useEffect(() => {
-    if (consultation?.vital_signs) {
+    if (consultation?.pre_consultation) {
       setEditableVitals({
-        temperature: consultation.vital_signs.temperature?.toString() || "",
-        heart_rate: consultation.vital_signs.heart_rate?.toString() || "",
-        respiratory_rate: consultation.vital_signs.respiratory_rate?.toString() || "",
-        systolic_pressure: consultation.vital_signs.systolic_pressure?.toString() || "",
-        diastolic_pressure: consultation.vital_signs.diastolic_pressure?.toString() || "",
-        oxygen_saturation: consultation.vital_signs.oxygen_saturation?.toString() || "",
-        blood_glucose: consultation.vital_signs.blood_glucose?.toString() || "",
-        weight: consultation.vital_signs.weight?.toString() || "",
-        height: consultation.vital_signs.height?.toString() || "",
+        temperature: consultation.pre_consultation.temperature?.toString() || "",
+        heart_rate: consultation.pre_consultation.heart_rate?.toString() || "",
+        respiratory_rate: consultation.pre_consultation.respiratory_rate?.toString() || "",
+        systolic_pressure: consultation.pre_consultation.systolic_pressure?.toString() || "",
+        diastolic_pressure: consultation.pre_consultation.diastolic_pressure?.toString() || "",
+        oxygen_saturation: consultation.pre_consultation.oxygen_saturation?.toString() || "",
+        blood_glucose: consultation.pre_consultation.blood_glucose?.toString() || "",
+        weight: consultation.pre_consultation.weight?.toString() || "",
+        height: consultation.pre_consultation.height?.toString() || "",
       });
+      setCurrentMedications(consultation.pre_consultation.current_medications || "");
     }
   }, [consultation]);
 
+  // Función para verificar si los signos vitales han cambiado
+  const hasVitalSignsChanged = (): boolean => {
+    if (!consultation?.pre_consultation) return false;
+
+    const original = consultation.pre_consultation;
+
+    return (
+      editableVitals.temperature !== (original.temperature?.toString() || "") ||
+      editableVitals.heart_rate !== (original.heart_rate?.toString() || "") ||
+      editableVitals.respiratory_rate !== (original.respiratory_rate?.toString() || "") ||
+      editableVitals.systolic_pressure !== (original.systolic_pressure?.toString() || "") ||
+      editableVitals.diastolic_pressure !== (original.diastolic_pressure?.toString() || "") ||
+      editableVitals.oxygen_saturation !== (original.oxygen_saturation?.toString() || "") ||
+      editableVitals.blood_glucose !== (original.blood_glucose?.toString() || "") ||
+      editableVitals.weight !== (original.weight?.toString() || "") ||
+      editableVitals.height !== (original.height?.toString() || "") ||
+      currentMedications !== (original.current_medications || "")
+    );
+  };
+
   const handleUpdateVitalSigns = () => {
-    if (!consultation?.pre_consultation_id) {
+    if (!consultation?.pre_consultation?.id) {
       toast.error("No hay una pre-consulta asociada para actualizar");
       return;
     }
@@ -236,17 +271,13 @@ export default function ConsultationForm() {
     if (editableVitals.systolic_pressure) updateData.systolic_pressure = parseInt(editableVitals.systolic_pressure);
     if (editableVitals.diastolic_pressure) updateData.diastolic_pressure = parseInt(editableVitals.diastolic_pressure);
     if (editableVitals.oxygen_saturation) updateData.oxygen_saturation = parseFloat(editableVitals.oxygen_saturation);
-    if (editableVitals.blood_glucose) updateData.blood_glucose = parseFloat(editableVitals.blood_glucose);
+    if (editableVitals.blood_glucose) updateData.blood_glucose = parseInt(editableVitals.blood_glucose);
     if (editableVitals.weight) updateData.weight = parseFloat(editableVitals.weight);
     if (editableVitals.height) updateData.height = parseFloat(editableVitals.height);
-
-    if (Object.keys(updateData).length === 0) {
-      toast.error("No hay cambios para actualizar");
-      return;
-    }
+    if (currentMedications.trim()) updateData.current_medications = currentMedications.trim();
 
     updatePreConsultationMutation.mutate({
-      id: consultation.pre_consultation_id,
+      id: consultation.pre_consultation.id,
       data: updateData,
     });
   };
@@ -279,14 +310,15 @@ export default function ConsultationForm() {
     const prescribedMedicationsStrings = medications.map(med => {
       const parts = [med.name];
       if (med.dosage) parts.push(med.dosage);
+      if (med.route) parts.push(`Vía ${med.route}`);
       if (med.frequency) parts.push(med.frequency);
-      if (med.duration) parts.push(med.duration);
+      if (med.duration) parts.push(`Durante ${med.duration}`);
       return parts.join(' ');
     });
 
     const consultationData = {
       patient_id: consultation.patient.id,
-      pre_consultation_id: consultation.pre_consultation_id || undefined,
+      pre_consultation_id: consultation.pre_consultation?.id,
       symptoms: symptoms,
       diagnoses: diagnoses,
       prescribed_medications: prescribedMedicationsStrings,
@@ -296,6 +328,8 @@ export default function ConsultationForm() {
     };
 
     // Paso 1: Crear la consulta
+    // IMPORTANTE: POST /consultations automáticamente cambia el estado a "Completado"
+    // No necesitamos llamar a PATCH /waiting-room/{id}/status
     createConsultationMutation.mutate(consultationData, {
       onSuccess: async (response) => {
         // Extraer el consultation_id de la respuesta
@@ -311,39 +345,34 @@ export default function ConsultationForm() {
           await uploadAttachments(consultationId);
         }
 
-        // Paso 3: Actualizar el estado del waiting room a "Completado"
-        changeStatusMutation.mutate(
-          { id: consultation.id, status: "Completado" },
-          {
-            onSuccess: () => {
-              // Paso 4: Generar la receta con el consultation_id
-              const prescriptionData = {
-                consultation_id: consultationId,
-                medications: medications,
-              };
+        // Paso 3: Generar la receta con el consultation_id
+        // (El backend ya cambió el estado a "Completado" automáticamente)
+        const prescriptionData = {
+          consultation_id: consultationId,
+          medications: medications,
+        };
 
-              generatePrescriptionMutation.mutate(prescriptionData, {
-                onSuccess: (prescriptionResponse) => {
-                  // Paso 5: Abrir la URL de la receta en una nueva pestaña
-                  const prescriptionUrl = prescriptionResponse.data?.download_url;
+        generatePrescriptionMutation.mutate(prescriptionData, {
+          onSuccess: (prescriptionResponse) => {
+            // Paso 4: Abrir la URL de la receta en una nueva pestaña
+            const prescriptionUrl = prescriptionResponse.data?.download_url;
 
-                  if (prescriptionUrl) {
-                    window.open(prescriptionUrl, '_blank');
-                    toast.success("Consulta completada y receta generada exitosamente");
-                  } else {
-                    toast.success("Consulta completada exitosamente");
-                  }
-                },
-                onError: () => {
-                  toast.warning("Consulta completada, pero hubo un error al generar la receta");
-                },
-              });
-            },
-            onError: () => {
-              toast.error("Error al actualizar el estado de la consulta");
-            },
-          }
-        );
+            if (prescriptionUrl) {
+              window.open(prescriptionUrl, '_blank');
+              toast.success("Consulta completada y receta generada exitosamente");
+            } else {
+              toast.success("Consulta completada exitosamente");
+            }
+
+            // Redirigir a la sala de espera después de completar
+            navigate("/waiting-room");
+          },
+          onError: () => {
+            toast.warning("Consulta completada, pero hubo un error al generar la receta");
+            // Redirigir incluso si falla la receta (la consulta ya está guardada)
+            navigate("/waiting-room");
+          },
+        });
       },
     });
   };
@@ -386,7 +415,7 @@ export default function ConsultationForm() {
     );
   }
 
-  const { patient, vital_signs, added_by, arrival_time, priority, notes } = consultation;
+  const { patient, pre_consultation, added_by, arrival_time, priority, notes } = consultation;
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -429,29 +458,49 @@ export default function ConsultationForm() {
             <label className="text-sm font-medium text-muted-foreground">Alergias</label>
             <p className="text-base font-semibold mt-1.5 text-red-600">{patient.allergies || "Ninguna"}</p>
           </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Religión</label>
+            <p className="text-base font-semibold mt-1.5">{patient.religion || "No especificado"}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Ocupación</label>
+            <p className="text-base font-semibold mt-1.5">{patient.occupation || "No especificado"}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-muted-foreground">Originario de</label>
+            <p className="text-base font-semibold mt-1.5">{patient.native_of || "No especificado"}</p>
+          </div>
+          <div className="md:col-span-3">
+            <label className="text-sm font-medium text-muted-foreground">Antecedentes Personales</label>
+            <p className="text-base mt-1.5 whitespace-pre-wrap">{patient.personal_background || "No registrado"}</p>
+          </div>
+          <div className="md:col-span-3">
+            <label className="text-sm font-medium text-muted-foreground">Antecedentes Ginecoobstétricos</label>
+            <p className="text-base mt-1.5 whitespace-pre-wrap">{patient.obstetric_gynecological_background || "No registrado"}</p>
+          </div>
         </div>
       </Card>
 
-      {/* Signos Vitales */}
+      {/* Preconsulta */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-xl font-semibold">Signos Vitales</h2>
-            {added_by && (
+            <h2 className="text-xl font-semibold">Preconsulta</h2>
+            {pre_consultation?.recorded_by && (
               <span className="text-sm text-muted-foreground ml-2">
-                • Registrado por: <span className="font-medium text-foreground">{added_by.name}</span>
+                • Registrado por: <span className="font-medium text-foreground">{pre_consultation.recorded_by.name}</span>
               </span>
             )}
           </div>
-          {consultation?.pre_consultation_id && (
+          {consultation?.pre_consultation?.id && (
             <Button
               type="button"
               onClick={handleUpdateVitalSigns}
-              disabled={updatePreConsultationMutation.isPending}
+              disabled={updatePreConsultationMutation.isPending || !hasVitalSignsChanged()}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
-              {updatePreConsultationMutation.isPending ? "Actualizando..." : "Actualizar Signos Vitales"}
+              {updatePreConsultationMutation.isPending ? "Actualizando..." : "Actualizar Preconsulta"}
             </Button>
           )}
         </div>
@@ -461,7 +510,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Thermometer className="h-4 w-4 text-muted-foreground" />
+                <Thermometer className="h-4 w-4 text-orange-500" />
                 Temperatura (°C)
               </div>
             </label>
@@ -479,7 +528,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Heart className="h-4 w-4 text-muted-foreground" />
+                <Heart className="h-4 w-4 text-pink-500" />
                 Frecuencia Cardíaca (lpm)
               </div>
             </label>
@@ -496,7 +545,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Wind className="h-4 w-4 text-muted-foreground" />
+                <Wind className="h-4 w-4 text-cyan-500" />
                 Frecuencia Respiratoria (rpm)
               </div>
             </label>
@@ -513,7 +562,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-muted-foreground" />
+                <Activity className="h-4 w-4 text-red-500" />
                 Presión Sistólica (mmHg)
               </div>
             </label>
@@ -530,7 +579,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-muted-foreground" />
+                <Activity className="h-4 w-4 text-red-500" />
                 Presión Diastólica (mmHg)
               </div>
             </label>
@@ -547,7 +596,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Droplet className="h-4 w-4 text-muted-foreground" />
+                <Droplet className="h-4 w-4 text-blue-500" />
                 Saturación O₂ (%)
               </div>
             </label>
@@ -565,7 +614,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                <Stethoscope className="h-4 w-4 text-amber-500" />
                 Glucosa en Sangre (mg/dL)
               </div>
             </label>
@@ -583,7 +632,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Weight className="h-4 w-4 text-muted-foreground" />
+                <Weight className="h-4 w-4 text-purple-500" />
                 Peso (kg)
               </div>
             </label>
@@ -601,7 +650,7 @@ export default function ConsultationForm() {
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
-                <Ruler className="h-4 w-4 text-muted-foreground" />
+                <Ruler className="h-4 w-4 text-green-500" />
                 Altura (m)
               </div>
             </label>
@@ -616,19 +665,33 @@ export default function ConsultationForm() {
           </div>
 
           {/* IMC (calculado) */}
-          {vital_signs?.imc && (
+          {pre_consultation?.imc && (
             <div>
               <label className="block text-sm font-medium mb-2">
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-muted-foreground" />
+                  <Activity className="h-4 w-4 text-indigo-500" />
                   IMC (calculado)
                 </div>
               </label>
               <div className="w-full px-3 py-2 border border-input rounded-md bg-muted">
-                <p className="text-base font-semibold">{vital_signs.imc.toFixed(2)}</p>
+                <p className="text-base font-semibold">{pre_consultation.imc.toFixed(2)}</p>
               </div>
             </div>
           )}
+        </div>
+
+        {/* Medicamentos Actuales */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-2">
+            Medicamentos Actuales
+          </label>
+          <textarea
+            value={currentMedications}
+            onChange={(e) => setCurrentMedications(e.target.value)}
+            placeholder="Medicamentos que el paciente toma actualmente..."
+            rows={3}
+            className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+          />
         </div>
       </Card>
 
@@ -738,7 +801,15 @@ export default function ConsultationForm() {
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <Autocomplete
+                  value={currentMedication.route}
+                  onChange={(value) => setCurrentMedication({ ...currentMedication, route: value })}
+                  onSelect={(value) => setCurrentMedication({ ...currentMedication, route: value })}
+                  suggestions={routeSuggestions}
+                  placeholder="Vía (ej: Oral)..."
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                />
                 <Autocomplete
                   value={currentMedication.frequency}
                   onChange={(value) => setCurrentMedication({ ...currentMedication, frequency: value })}
@@ -772,6 +843,7 @@ export default function ConsultationForm() {
                     <p className="font-semibold text-foreground">{medication.name}</p>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
                       {medication.dosage && <span>• Dosis: {medication.dosage}</span>}
+                      {medication.route && <span>• Vía: {medication.route}</span>}
                       {medication.frequency && <span>• Frecuencia: {medication.frequency}</span>}
                       {medication.duration && <span>• Duración: {medication.duration}</span>}
                     </div>

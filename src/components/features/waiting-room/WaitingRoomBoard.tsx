@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useWaitingRoom,
   useCallPatient,
   useChangeWaitingRoomStatus,
 } from "@/hooks/useWaitingRoom";
 import { useDashboardStats } from "@/hooks/useAnalytics";
+import { useDoctors } from "@/hooks/useUsers";
 import { useAuthStore } from "@/stores/authStore";
 import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
@@ -13,18 +14,88 @@ import Badge from "@/components/ui/Badge";
 import Spinner from "@/components/ui/Spinner";
 import Separator from "@/components/ui/Separator";
 import ConfirmRemovePatientModal from "@/components/features/waiting-room/ConfirmRemovePatientModal";
-import { User, Users, FileText, DollarSign, Calendar } from "lucide-react";
+import { User, Users, FileText, DollarSign, Calendar, Clock, UserCog } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WaitingRoomBoard() {
-  const { data: waitingRoom, isLoading } = useWaitingRoom();
-  const { data: dashboardStats, isLoading: isLoadingStats } = useDashboardStats();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+
+  // Estado para filtro de doctor (solo para asistentes)
+  const [selectedDoctorFilter, setSelectedDoctorFilter] = useState<string>("");
+
+  const { data: waitingRoom, isLoading } = useWaitingRoom(selectedDoctorFilter || undefined);
+  const { data: dashboardStats, isLoading: isLoadingStats } = useDashboardStats(selectedDoctorFilter || undefined);
+  const { data: doctorsList = [], isLoading: loadingDoctors } = useDoctors();
   const callMutation = useCallPatient();
   const changeStatusMutation = useChangeWaitingRoomStatus();
 
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<{ id: string; name: string } | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  const isAssistant = user?.role === "assistant";
+
+  // Actualizar el tiempo actual cada minuto para recalcular los semáforos y tiempo de espera
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Actualizar cada 1 minuto (60 segundos)
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Calcular minutos de espera
+  const getWaitingMinutes = (arrivalTime: string): number => {
+    let arrivalDate: Date;
+
+    // Convertir formato DD-MM-YYYY HH:mm:ss a ISO format
+    if (arrivalTime.includes('-') && arrivalTime.split('-')[0].length <= 2) {
+      const [datePart, timePart] = arrivalTime.split(' ');
+      const [day, month, year] = datePart.split('-');
+      const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
+      arrivalDate = new Date(isoDate);
+    } else {
+      arrivalDate = new Date(arrivalTime);
+    }
+
+    const diffMs = currentTime.getTime() - arrivalDate.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    return diffMinutes;
+  };
+
+  // Obtener el estado del semáforo basado en el tiempo de espera
+  const getTrafficLightState = (arrivalTime: string): 'green' | 'orange' | 'red' => {
+    const minutes = getWaitingMinutes(arrivalTime);
+
+    if (minutes >= 20) {
+      return 'red'; // Rojo: más de 20 minutos
+    } else if (minutes >= 10) {
+      return 'orange'; // Naranja: 10-19 minutos
+    } else {
+      return 'green'; // Verde: 0-9 minutos
+    }
+  };
+
+  // Formatear el tiempo de espera para mostrar
+  const formatWaitingTime = (arrivalTime: string): string => {
+    const minutes = getWaitingMinutes(arrivalTime);
+
+    if (minutes < 1) {
+      return "Recién llegado";
+    } else if (minutes === 1) {
+      return "1 minuto";
+    } else if (minutes < 60) {
+      return `${minutes} minutos`;
+    } else {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return hours === 1 ? "1 hora" : `${hours} horas`;
+      }
+      return `${hours}h ${remainingMinutes}m`;
+    }
+  };
 
   const getPriorityColor = (priority: string) => {
     const priorityLower = priority.toLowerCase();
@@ -32,28 +103,6 @@ export default function WaitingRoomBoard() {
       return "bg-destructive/5 border-destructive/20 hover:shadow-destructive/10";
     }
     return "bg-primary/5 border-primary/20 hover:shadow-primary/10";
-  };
-
-  const getGenderLabel = (gender?: string) => {
-    if (!gender) return "No especificado";
-    const genderLower = gender.toLowerCase();
-    if (genderLower === "male" || genderLower === "masculino" || genderLower === "m") {
-      return "Masculino";
-    }
-    if (genderLower === "female" || genderLower === "femenino" || genderLower === "f") {
-      return "Femenino";
-    }
-    return gender;
-  };
-
-  const formatArrivalTime = (arrivalTime: string) => {
-    const date = new Date(arrivalTime);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-    return `${day}/${month}/${year} ${hours}:${minutes}`;
   };
 
   const handleAttend = async (id: string) => {
@@ -99,10 +148,21 @@ export default function WaitingRoomBoard() {
     );
   }
 
+  // Helper function to parse arrival time for sorting
+  const parseArrivalTime = (arrivalTime: string): Date => {
+    if (arrivalTime.includes('-') && arrivalTime.split('-')[0].length <= 2) {
+      const [datePart, timePart] = arrivalTime.split(' ');
+      const [day, month, year] = datePart.split('-');
+      const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
+      return new Date(isoDate);
+    }
+    return new Date(arrivalTime);
+  };
+
   // Sort strictly by arrival time (FIFO - First In First Out)
   // Priority is shown visually but doesn't affect queue order
   const sortedWaitingRoom = [...(waitingRoom || [])].sort((a, b) => {
-    return new Date(a.arrival_time).getTime() - new Date(b.arrival_time).getTime();
+    return parseArrivalTime(a.arrival_time).getTime() - parseArrivalTime(b.arrival_time).getTime();
   });
 
   const waitingPatients = sortedWaitingRoom;
@@ -174,10 +234,34 @@ export default function WaitingRoomBoard() {
       {/* Lista de pacientes en sala de espera */}
       <Card className="min-h-[400px] lg:h-[calc(100vh-400px)]">
         <div className="h-full flex flex-col">
-          <div className="flex items-center gap-2 p-4 pb-3 sm:p-6 sm:pb-4">
-            <Users className="h-5 w-5 text-muted-foreground" />
-            <h3 className="font-semibold text-lg">Pacientes en Sala de Espera</h3>
-            <Badge variant="secondary">{waitingPatients.length}</Badge>
+          <div className="p-4 pb-3 sm:p-6 sm:pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-muted-foreground" />
+                <h3 className="font-semibold text-lg">Pacientes en Sala de Espera</h3>
+                <Badge variant="secondary">{waitingPatients.length}</Badge>
+              </div>
+
+              {/* Filtro de Doctor - Solo para Asistentes */}
+              {isAssistant && (
+                <div className="flex items-center gap-2 sm:ml-auto">
+                  <UserCog className="h-4 w-4 text-muted-foreground" />
+                  <select
+                    value={selectedDoctorFilter}
+                    onChange={(e) => setSelectedDoctorFilter(e.target.value)}
+                    className="px-3 py-1.5 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                    disabled={loadingDoctors}
+                  >
+                    <option value="">Todos los doctores</option>
+                    {doctorsList.map((doctor) => (
+                      <option key={doctor.id} value={doctor.id}>
+                        Dr. {doctor.first_name} {doctor.last_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
           <Separator />
 
@@ -196,45 +280,83 @@ export default function WaitingRoomBoard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {waitingPatients.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className={`p-3 sm:p-4 border rounded-lg hover:shadow-md transition-shadow ${getPriorityColor(entry.priority)}`}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <h3 className="font-semibold text-sm sm:text-base">{entry.patient.full_name}</h3>
-                          <span className="text-xs text-muted-foreground">({entry.patient.age} años)</span>
+                {waitingPatients.map((entry) => {
+                  const trafficLightState = getTrafficLightState(entry.arrival_time);
+
+                  return (
+                    <div
+                      key={entry.id}
+                      className={`p-3 sm:p-4 border rounded-lg hover:shadow-md transition-shadow ${getPriorityColor(entry.priority)}`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="flex-1">
+                          {/* Nombre y edad */}
+                          <div className="flex items-center gap-2 mb-3">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <h3 className="font-semibold text-sm sm:text-base">{entry.patient.full_name}</h3>
+                            <span className="text-xs text-muted-foreground">({entry.patient.age} años)</span>
+                          </div>
+
+                          {/* Información del paciente */}
+                          <div className="flex flex-col gap-2 sm:ml-6">
+                            {/* Semáforo de 3 círculos */}
+                            <div className="flex items-center gap-2">
+                              {/* Círculo Verde */}
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 ${
+                                  trafficLightState === 'green'
+                                    ? 'bg-green-500 border-green-600 shadow-md'
+                                    : 'bg-gray-200 border-gray-300'
+                                }`}
+                                title="0-9 minutos"
+                              />
+                              {/* Círculo Naranja */}
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 ${
+                                  trafficLightState === 'orange'
+                                    ? 'bg-orange-500 border-orange-600 shadow-md'
+                                    : 'bg-gray-200 border-gray-300'
+                                }`}
+                                title="10-19 minutos"
+                              />
+                              {/* Círculo Rojo */}
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 ${
+                                  trafficLightState === 'red'
+                                    ? 'bg-red-500 border-red-600 shadow-md'
+                                    : 'bg-gray-200 border-gray-300'
+                                }`}
+                                title="20+ minutos"
+                              />
+                            </div>
+
+                            {/* Tiempo de espera con ícono de reloj */}
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="h-3.5 w-3.5" />
+                              <strong>Tiempo de espera:</strong> {formatWaitingTime(entry.arrival_time)}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex flex-col gap-1 sm:ml-6 text-xs text-muted-foreground">
-                          <p>
-                            <strong>Sexo:</strong> {getGenderLabel(entry.patient.gender)}
-                          </p>
-                          <p className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <strong>Llegada:</strong> {formatArrivalTime(entry.arrival_time)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-row sm:flex-col gap-2 sm:ml-4">
-                        {user?.role === "doctor" && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleAttend(entry.id)}
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
-                          >
-                            Atender
+
+                        {/* Botones de acción */}
+                        <div className="flex flex-row sm:flex-col gap-2 sm:ml-4">
+                          {user?.role === "doctor" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleAttend(entry.id)}
+                              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                            >
+                              Atender
+                            </Button>
+                          )}
+                          <Button size="sm" variant="destructive" onClick={() => handleRemove(entry.id, entry.patient.full_name)}>
+                            Remover
                           </Button>
-                        )}
-                        <Button size="sm" variant="destructive" onClick={() => handleRemove(entry.id, entry.patient.full_name)}>
-                          Remover
-                        </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

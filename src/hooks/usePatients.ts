@@ -32,6 +32,7 @@ export function useAllPatients() {
     queryKey: ["patients", "all"],
     queryFn: async () => {
       const response = await api.get("/patients");
+      // El backend retorna por defecto todos los pacientes con solo {id, full_name}
       return response.data.data.patients as Patient[];
     },
   });
@@ -55,7 +56,8 @@ export function useSearchPatients(query: string) {
       const response = await api.get("/patients", {
         params: { search: query },
       });
-      return response.data.data as Patient[];
+      // Búsqueda del lado del servidor (si el backend la soporta)
+      return response.data.data.patients as Patient[];
     },
     enabled: query.length > 0,
   });

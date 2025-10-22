@@ -20,14 +20,36 @@ export function isDoctor(user: User | null): boolean {
   return user?.role === "doctor";
 }
 
+export function isAssistant(user: User | null): boolean {
+  return user?.role === "assistant";
+}
+
+export function isChemist(user: User | null): boolean {
+  return user?.role === "chemist";
+}
+
 export function canAccessRoute(user: User | null, route: string): boolean {
   if (!user) return false;
 
-  const doctorOnlyRoutes = ["/users", "/analytics", "/patients"];
+  // Rutas exclusivas para doctor
+  const doctorOnlyRoutes = ["/users", "/analytics", "/consultation"];
   const isDoctorRoute = doctorOnlyRoutes.some((r) => route.startsWith(r));
 
   if (isDoctorRoute) {
     return isDoctor(user);
+  }
+
+  // Rutas accesibles para doctor y chemist (pacientes y consultas de pacientes)
+  if (route.startsWith("/patients") || route.includes("/consultations")) {
+    return isDoctor(user) || isChemist(user);
+  }
+
+  // Rutas accesibles para doctor y assistant (sala de espera, pre-consultas)
+  const assistantRoutes = ["/waiting-room", "/pre-consultation"];
+  const isAssistantRoute = assistantRoutes.some((r) => route.startsWith(r));
+
+  if (isAssistantRoute) {
+    return isDoctor(user) || isAssistant(user);
   }
 
   return true;

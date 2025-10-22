@@ -12,6 +12,7 @@ import Input from "@/components/ui/Input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/Modal";
 import Label from "@/components/ui/Label";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const loginSchema = z.object({
   username: z.string().min(3, "Mínimo 3 caracteres"),
@@ -22,6 +23,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
   const [show2FAModal, setShow2FAModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState<LoginForm | null>(null);
@@ -88,7 +90,14 @@ export default function LoginForm() {
 
       if (response.data.success) {
         setAuth(response.data.data.token, response.data.data.user);
-        navigate("/waiting-room");
+
+        // Redirección inteligente según el rol del usuario
+        const userRole = response.data.data.user.role;
+        if (userRole === 'chemist') {
+          navigate("/patients");
+        } else {
+          navigate("/waiting-room");
+        }
       }
     } catch (error: any) {
       throw error;
@@ -138,7 +147,16 @@ export default function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Contraseña</Label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPasswordModal(true)}
+                  className="text-sm text-primary hover:underline"
+                >
+                  ¿Olvidaste la contraseña?
+                </button>
+              </div>
               <div className="relative">
                 <Input
                   id="password"
@@ -216,6 +234,12 @@ export default function LoginForm() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Recuperar Contraseña */}
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </>
   );
 }

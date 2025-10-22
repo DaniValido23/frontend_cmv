@@ -1,0 +1,15 @@
+export const frequentRoutes = [
+  "Oral",
+  "Intramuscular (IM)",
+  "Intravenosa (IV)",
+  "Subcutánea (SC)",
+  "Tópica",
+  "Oftálmica",
+  "Ótica",
+  "Nasal",
+  "Rectal",
+  "Vaginal",
+  "Sublingual",
+  "Inhalatoria",
+  "Transdérmica",
+];

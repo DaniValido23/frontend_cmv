@@ -1,12 +1,25 @@
 import { api } from "@/lib/api";
 import type { UsersResponse, UserResponse, CreateUserRequest, UpdateUserRequest } from "@/types/user";
+import type { SessionsResponse, RevokeSessionResponse } from "@/types/session";
 
 export const usersApi = {
   /**
    * Obtener lista de usuarios
    */
-  async getUsers(page: number = 1, pageSize: number = 10): Promise<UsersResponse> {
-    const response = await api.get(`/users?page=${page}&page_size=${pageSize}`);
+  async getUsers(page: number = 1, pageSize: number = 10, role?: string): Promise<UsersResponse> {
+    let url = `/users?page=${page}&page_size=${pageSize}`;
+    if (role) {
+      url += `&role=${role}`;
+    }
+    const response = await api.get(url);
+    return response.data;
+  },
+
+  /**
+   * Obtener lista de doctores
+   */
+  async getDoctors(): Promise<UsersResponse> {
+    const response = await api.get(`/users?role=doctor&page_size=100`);
     return response.data;
   },
 
@@ -47,6 +60,22 @@ export const usersApi = {
    */
   async deactivateUser(userId: string): Promise<UserResponse> {
     const response = await api.post(`/users/${userId}/deactivate`);
+    return response.data;
+  },
+
+  /**
+   * Obtener lista de sesiones activas
+   */
+  async getSessions(): Promise<SessionsResponse> {
+    const response = await api.get("/auth/sessions/");
+    return response.data;
+  },
+
+  /**
+   * Revocar una sesión específica
+   */
+  async revokeSession(sessionId: string): Promise<RevokeSessionResponse> {
+    const response = await api.delete(`/auth/sessions/${sessionId}`);
     return response.data;
   },
 };

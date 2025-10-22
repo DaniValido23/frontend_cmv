@@ -1,26 +1,33 @@
-import { useState, useMemo } from "react";
-import { useAllPatients } from "@/hooks/usePatients";
-import { useCreatePreConsultation } from "@/hooks/usePreConsultations";
-import { useAddToWaitingRoom } from "@/hooks/useWaitingRoom";
+import { useState, useMemo, useEffect } from "react";
+import { useAllPatients, usePatient } from "@/hooks/usePatients";
+import { useRegisterAndQueuePatient } from "@/hooks/usePreConsultations";
+import { useDoctors } from "@/hooks/useUsers";
 import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Autocomplete from "@/components/ui/Autocomplete";
 import AddPatientModal from "./AddPatientModal";
-import { User, Heart, Thermometer, Activity, Weight, Ruler, Droplet, Clock, UserPlus, Wind, Stethoscope } from "lucide-react";
+import { User, Heart, Thermometer, Activity, Weight, Ruler, Droplet, Clock, UserPlus, Wind, Stethoscope, Pill, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import type { Patient } from "@/types/models";
 
 export default function PreConsultationForm() {
   const navigate = useNavigate();
-  const { data: patients = [], isLoading: loadingPatients } = useAllPatients();
-  const createPreConsultationMutation = useCreatePreConsultation();
-  const addToWaitingRoomMutation = useAddToWaitingRoom();
+  const registerAndQueueMutation = useRegisterAndQueuePatient();
 
   // Estados del formulario
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [patientSearch, setPatientSearch] = useState("");
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedDoctorId, setSelectedDoctorId] = useState("");
+
+  // Cargar lista ligera de pacientes (solo id y full_name)
+  const { data: patientsList = [], isLoading: loadingPatients } = useAllPatients();
+
+  // Cargar datos completos del paciente seleccionado
+  const { data: selectedPatient, isLoading: loadingPatientDetails } = usePatient(selectedPatientId);
+
+  // Cargar lista de doctores
+  const { data: doctorsList = [], isLoading: loadingDoctors } = useDoctors();
 
   // Signos vitales
   const [temperature, setTemperature] = useState("");
@@ -33,93 +40,256 @@ export default function PreConsultationForm() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
 
+  // Medicamentos actuales
+  const [currentMedications, setCurrentMedications] = useState("");
+
   // Prioridad para sala de espera
   const [priority, setPriority] = useState("Normal");
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Filtrar pacientes para autocomplete
+  // Filtrar pacientes para autocomplete (búsqueda local en la lista ligera)
   const patientSuggestions = useMemo(() => {
     if (!patientSearch.trim() || loadingPatients) return [];
-    return patients
+    return patientsList
       .filter(p =>
-        p.full_name.toLowerCase().includes(patientSearch.toLowerCase()) ||
-        p.phone?.includes(patientSearch)
+        p.full_name.toLowerCase().includes(patientSearch.toLowerCase())
       )
       .slice(0, 8)
       .map(p => p.full_name);
-  }, [patientSearch, patients, loadingPatients]);
+  }, [patientSearch, patientsList, loadingPatients]);
 
   const handlePatientSelect = (patientName: string) => {
-    const patient = patients.find(p => p.full_name === patientName);
+    // Buscar el paciente en la lista ligera para obtener su ID
+    const patient = patientsList.find(p => p.full_name === patientName);
     if (patient) {
-      setSelectedPatient(patient);
-      setSelectedPatientId(patient.id);
+      setSelectedPatientId(patient.id); // Esto dispara usePatient(id) para cargar datos completos
       setPatientSearch(patientName);
     }
   };
 
   const handlePatientCreated = (newPatient: Patient) => {
-    // Set the patient data directly from the API response
+    // Cuando se crea un paciente nuevo, establecer su ID y nombre
     setSelectedPatientId(newPatient.id);
     setPatientSearch(newPatient.full_name);
-    setSelectedPatient(newPatient);
+    // No es necesario setear selectedPatient porque usePatient(id) lo cargará automáticamente
+  };
+
+  // Formateo automático para temperatura y peso (XX.X)
+  const handleTwoDigitDecimalInput = (
+    value: string,
+    setter: (value: string) => void
+  ) => {
+    // Remover cualquier cosa que no sea número
+    const cleaned = value.replace(/[^\d]/g, '');
+
+    if (cleaned.length === 0) {
+      setter('');
+      return;
+    }
+
+    // Limitar a 3 dígitos (XX.X)
+    const limited = cleaned.slice(0, 3);
+
+    // Formatear con punto decimal automático
+    if (limited.length <= 2) {
+      setter(limited);
+    } else {
+      // Insertar punto después de 2 dígitos: XX.X
+      setter(`${limited.slice(0, 2)}.${limited.slice(2)}`);
+    }
+  };
+
+  // Formateo automático para altura (X.XX)
+  const handleHeightInput = (value: string) => {
+    // Remover cualquier cosa que no sea número
+    const cleaned = value.replace(/[^\d]/g, '');
+
+    if (cleaned.length === 0) {
+      setHeight('');
+      return;
+    }
+
+    // Limitar a 3 dígitos (X.XX)
+    const limited = cleaned.slice(0, 3);
+
+    // Formatear con punto decimal automático
+    if (limited.length === 1) {
+      setHeight(limited);
+    } else {
+      // Insertar punto después de 1 dígito: X.XX
+      setHeight(`${limited.slice(0, 1)}.${limited.slice(1)}`);
+    }
+  };
+
+  const validateVitalSigns = () => {
+    const errors: string[] = [];
+
+    // Validar temperatura (rango: 35.0 - 42.0 °C)
+    if (temperature) {
+      const temp = parseFloat(temperature);
+      if (isNaN(temp)) {
+        errors.push("Temperatura debe ser un número válido");
+      } else if (temp < 35.0 || temp > 42.0) {
+        errors.push("Temperatura fuera de rango (35.0 - 42.0 °C)");
+      }
+    }
+
+    // Validar frecuencia cardíaca (rango: 30 - 250 lpm)
+    if (heartRate) {
+      const hr = parseInt(heartRate);
+      if (isNaN(hr)) {
+        errors.push("Frecuencia cardíaca debe ser un número entero");
+      } else if (hr < 30 || hr > 250) {
+        errors.push("Frecuencia cardíaca fuera de rango (30 - 250 lpm)");
+      }
+    }
+
+    // Validar frecuencia respiratoria (rango: 8 - 60 rpm)
+    if (respiratoryRate) {
+      const rr = parseInt(respiratoryRate);
+      if (isNaN(rr)) {
+        errors.push("Frecuencia respiratoria debe ser un número entero");
+      } else if (rr < 8 || rr > 60) {
+        errors.push("Frecuencia respiratoria fuera de rango (8 - 60 rpm)");
+      }
+    }
+
+    // Validar presión sistólica (rango: 70 - 250 mmHg)
+    if (systolicPressure) {
+      const sys = parseInt(systolicPressure);
+      if (isNaN(sys)) {
+        errors.push("Presión sistólica debe ser un número entero");
+      } else if (sys < 70 || sys > 250) {
+        errors.push("Presión sistólica fuera de rango (70 - 250 mmHg)");
+      }
+    }
+
+    // Validar presión diastólica (rango: 40 - 150 mmHg)
+    if (diastolicPressure) {
+      const dia = parseInt(diastolicPressure);
+      if (isNaN(dia)) {
+        errors.push("Presión diastólica debe ser un número entero");
+      } else if (dia < 40 || dia > 150) {
+        errors.push("Presión diastólica fuera de rango (40 - 150 mmHg)");
+      }
+    }
+
+    // Validar coherencia de presiones
+    if (systolicPressure && diastolicPressure) {
+      const sys = parseInt(systolicPressure);
+      const dia = parseInt(diastolicPressure);
+      if (!isNaN(sys) && !isNaN(dia) && sys <= dia) {
+        errors.push("Presión sistólica debe ser mayor que la diastólica");
+      }
+    }
+
+    // Validar saturación de oxígeno (rango: 70 - 100%)
+    if (oxygenSaturation) {
+      const sat = parseFloat(oxygenSaturation);
+      if (isNaN(sat)) {
+        errors.push("Saturación de oxígeno debe ser un número válido");
+      } else if (sat < 70 || sat > 100) {
+        errors.push("Saturación de oxígeno fuera de rango (70 - 100%)");
+      }
+    }
+
+    // Validar glucosa (rango: 20 - 600 mg/dL)
+    if (bloodGlucose) {
+      const glucose = parseInt(bloodGlucose);
+      if (isNaN(glucose)) {
+        errors.push("Glucosa debe ser un número entero");
+      } else if (glucose < 20 || glucose > 600) {
+        errors.push("Glucosa fuera de rango (20 - 600 mg/dL)");
+      }
+    }
+
+    // Validar peso (rango: 0.5 - 500 kg)
+    if (weight) {
+      const w = parseFloat(weight);
+      if (isNaN(w)) {
+        errors.push("Peso debe ser un número válido");
+      } else if (w < 0.5 || w > 500) {
+        errors.push("Peso fuera de rango (0.5 - 500 kg)");
+      }
+    }
+
+    // Validar altura (rango: 0.3 - 3.0 m)
+    if (height) {
+      const h = parseFloat(height);
+      if (isNaN(h)) {
+        errors.push("Altura debe ser un número válido");
+      } else if (h < 0.3 || h > 3.0) {
+        errors.push("Altura fuera de rango (0.3 - 3.0 m)");
+      }
+    }
+
+    return errors;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validación 1: Paciente seleccionado
     if (!selectedPatientId) {
       toast.error("Debes seleccionar un paciente");
       return;
     }
 
-    // Preparar datos de pre-consulta
-    const preConsultationData = {
+    // Validación 2: Doctor seleccionado
+    if (!selectedDoctorId) {
+      toast.error("Debes seleccionar un doctor");
+      return;
+    }
+
+    // Validación 3: Rangos de signos vitales
+    const validationErrors = validateVitalSigns();
+    if (validationErrors.length > 0) {
+      validationErrors.forEach(error => toast.error(error));
+      return;
+    }
+
+    // Preparar datos consolidados (pre-consulta + sala de espera)
+    const consolidatedData = {
       patient_id: selectedPatientId,
+      doctor_id: selectedDoctorId,
       temperature: temperature ? parseFloat(temperature) : undefined,
       heart_rate: heartRate ? parseInt(heartRate) : undefined,
       respiratory_rate: respiratoryRate ? parseInt(respiratoryRate) : undefined,
       systolic_pressure: systolicPressure ? parseInt(systolicPressure) : undefined,
       diastolic_pressure: diastolicPressure ? parseInt(diastolicPressure) : undefined,
       oxygen_saturation: oxygenSaturation ? parseFloat(oxygenSaturation) : undefined,
-      blood_glucose: bloodGlucose ? parseFloat(bloodGlucose) : undefined,
+      blood_glucose: bloodGlucose ? parseInt(bloodGlucose) : undefined,
       weight: weight ? parseFloat(weight) : undefined,
       height: height ? parseFloat(height) : undefined,
+      current_medications: currentMedications.trim() || undefined,
+      priority: priority as "Normal" | "Urgente",
     };
 
-    // Paso 1: Crear pre-consulta
-    createPreConsultationMutation.mutate(preConsultationData, {
-      onSuccess: (response) => {
-        const preConsultationId = response.data.id;
-
-        if (!preConsultationId) {
-          toast.error("Error: No se recibió el ID de la pre-consulta");
-          return;
-        }
-
-        // Paso 2: Agregar a sala de espera
-        const waitingRoomData = {
-          patient_id: selectedPatientId,
-          pre_consultation_id: preConsultationId,
-          priority: priority,
-        };
-
-        addToWaitingRoomMutation.mutate(waitingRoomData, {
-          onSuccess: () => {
-            // Redirigir directamente a sala de espera sin toast
-            navigate("/waiting-room");
-          },
-          onError: () => {
-            toast.error("Pre-consulta creada pero hubo un error al agregar a la sala de espera");
-          },
-        });
+    // Llamar al endpoint consolidado (1 sola petición)
+    registerAndQueueMutation.mutate(consolidatedData, {
+      onSuccess: () => {
+        // Limpiar el formulario después de registro exitoso
+        setSelectedPatientId("");
+        setSelectedDoctorId("");
+        setPatientSearch("");
+        setTemperature("");
+        setHeartRate("");
+        setRespiratoryRate("");
+        setSystolicPressure("");
+        setDiastolicPressure("");
+        setOxygenSaturation("");
+        setBloodGlucose("");
+        setWeight("");
+        setHeight("");
+        setCurrentMedications("");
+        setPriority("Normal");
       },
     });
   };
 
-  const isSubmitting = createPreConsultationMutation.isPending || addToWaitingRoomMutation.isPending;
+  const isSubmitting = registerAndQueueMutation.isPending;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -137,7 +307,7 @@ export default function PreConsultationForm() {
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-primary" />
-                Paciente
+                Paciente <span className="text-destructive">*</span>
               </div>
             </label>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -146,7 +316,7 @@ export default function PreConsultationForm() {
                 onChange={setPatientSearch}
                 onSelect={handlePatientSelect}
                 suggestions={patientSuggestions}
-                placeholder="Buscar paciente por nombre o teléfono..."
+                placeholder="Buscar paciente por nombre..."
                 className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <Button
@@ -159,18 +329,53 @@ export default function PreConsultationForm() {
                 <span className="sm:hidden ml-2">Agregar Paciente</span>
               </Button>
             </div>
-            {selectedPatient && (
+            {selectedPatientId && (
               <div className="mt-3 p-3 bg-accent/50 border border-border rounded-lg">
-                <p className="font-semibold text-foreground">{selectedPatient.full_name}</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                  <span>• Edad: {selectedPatient.age} años</span>
-                  <span>• Teléfono: {selectedPatient.phone || "No especificado"}</span>
-                  <span>• Género: {selectedPatient.gender || "No especificado"}</span>
-                  {selectedPatient.allergies && (
-                    <span className="text-destructive font-medium">• Alergias: {selectedPatient.allergies}</span>
-                  )}
-                </div>
+                {loadingPatientDetails ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm">Cargando datos del paciente...</span>
+                  </div>
+                ) : selectedPatient ? (
+                  <>
+                    <p className="font-semibold text-foreground">{selectedPatient.full_name}</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                      <span>• Edad: {selectedPatient.age} años</span>
+                      <span>• Teléfono: {selectedPatient.phone || "No especificado"}</span>
+                      <span>• Género: {selectedPatient.gender || "No especificado"}</span>
+                      {selectedPatient.allergies && (
+                        <span className="text-destructive font-medium">• Alergias: {selectedPatient.allergies}</span>
+                      )}
+                    </div>
+                  </>
+                ) : null}
               </div>
+            )}
+          </div>
+
+          {/* Selección de Doctor */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              <div className="flex items-center gap-2">
+                <UserCog className="h-4 w-4 text-primary" />
+                Doctor que Atenderá <span className="text-destructive">*</span>
+              </div>
+            </label>
+            <select
+              value={selectedDoctorId}
+              onChange={(e) => setSelectedDoctorId(e.target.value)}
+              className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={loadingDoctors}
+            >
+              <option value="">Seleccionar doctor...</option>
+              {doctorsList.map((doctor) => (
+                <option key={doctor.id} value={doctor.id}>
+                  {doctor.first_name} {doctor.last_name}
+                </option>
+              ))}
+            </select>
+            {loadingDoctors && (
+              <p className="text-xs text-muted-foreground mt-1">Cargando doctores...</p>
             )}
           </div>
 
@@ -187,16 +392,16 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Thermometer className="h-4 w-4 text-muted-foreground" />
+                    <Thermometer className="h-4 w-4 text-orange-500" />
                     Temperatura (°C)
                   </div>
                 </label>
                 <input
-                  type="number"
-                  step="0.1"
+                  type="text"
+                  inputMode="decimal"
                   value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  placeholder="36.5"
+                  onChange={(e) => handleTwoDigitDecimalInput(e.target.value, setTemperature)}
+                  placeholder="37.5"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -205,7 +410,7 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-muted-foreground" />
+                    <Heart className="h-4 w-4 text-pink-500" />
                     Frecuencia Cardíaca (lpm)
                   </div>
                 </label>
@@ -222,7 +427,7 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Wind className="h-4 w-4 text-muted-foreground" />
+                    <Wind className="h-4 w-4 text-cyan-500" />
                     Frecuencia Respiratoria (rpm)
                   </div>
                 </label>
@@ -239,7 +444,7 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    <Activity className="h-4 w-4 text-red-500" />
                     Presión Sistólica (mmHg)
                   </div>
                 </label>
@@ -256,7 +461,7 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    <Activity className="h-4 w-4 text-red-500" />
                     Presión Diastólica (mmHg)
                   </div>
                 </label>
@@ -273,7 +478,7 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Droplet className="h-4 w-4 text-muted-foreground" />
+                    <Droplet className="h-4 w-4 text-blue-500" />
                     Saturación O₂ (%)
                   </div>
                 </label>
@@ -291,16 +496,16 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Stethoscope className="h-4 w-4 text-muted-foreground" />
+                    <Stethoscope className="h-4 w-4 text-amber-500" />
                     Glucosa en Sangre (mg/dL)
                   </div>
                 </label>
                 <input
                   type="number"
-                  step="0.1"
+                  step="1"
                   value={bloodGlucose}
                   onChange={(e) => setBloodGlucose(e.target.value)}
-                  placeholder="95.0"
+                  placeholder="95"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
@@ -309,15 +514,15 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Weight className="h-4 w-4 text-muted-foreground" />
+                    <Weight className="h-4 w-4 text-purple-500" />
                     Peso (kg)
                   </div>
                 </label>
                 <input
-                  type="number"
-                  step="0.1"
+                  type="text"
+                  inputMode="decimal"
                   value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
+                  onChange={(e) => handleTwoDigitDecimalInput(e.target.value, setWeight)}
                   placeholder="70.5"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -327,19 +532,45 @@ export default function PreConsultationForm() {
               <div>
                 <label className="block text-sm font-medium mb-2">
                   <div className="flex items-center gap-2">
-                    <Ruler className="h-4 w-4 text-muted-foreground" />
+                    <Ruler className="h-4 w-4 text-green-500" />
                     Altura (m)
                   </div>
                 </label>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   value={height}
-                  onChange={(e) => setHeight(e.target.value)}
+                  onChange={(e) => handleHeightInput(e.target.value)}
                   placeholder="1.75"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Medicamentos Actuales */}
+          <div>
+            <label className="block text-sm font-medium mb-2">
+              <div className="flex items-center gap-2">
+                <Pill className="h-4 w-4 text-muted-foreground" />
+                Medicamentos Actuales
+              </div>
+            </label>
+            <span className="text-xs text-muted-foreground mb-2 block">
+              (Opcional) Medicamentos que el paciente está tomando actualmente
+            </span>
+            <textarea
+              value={currentMedications}
+              onChange={(e) => setCurrentMedications(e.target.value)}
+              placeholder="Ej: Paracetamol 500mg cada 8 horas, Metformina 850mg..."
+              rows={3}
+              maxLength={5000}
+              className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+            />
+            <div className="flex justify-end mt-1">
+              <span className="text-xs text-muted-foreground">
+                {currentMedications.length}/5000
+              </span>
             </div>
           </div>
 
@@ -377,11 +608,9 @@ export default function PreConsultationForm() {
               className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
               disabled={isSubmitting}
             >
-              {createPreConsultationMutation.isPending
-                ? "Creando pre-consulta..."
-                : addToWaitingRoomMutation.isPending
-                  ? "Agregando a sala de espera..."
-                  : "Registrar y Agregar a Sala de Espera"}
+              {isSubmitting
+                ? "Registrando paciente..."
+                : "Registrar y Agregar a Sala de Espera"}
             </Button>
           </div>
         </form>

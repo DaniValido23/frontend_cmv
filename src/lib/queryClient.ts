@@ -5,7 +5,7 @@ import { QueryClient } from "@tanstack/react-query";
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutos - datos considerados frescos durante este tiempo
+      staleTime: 0, // Siempre considerar los datos como obsoletos para refetch inmediato
       refetchOnWindowFocus: false, // No refetch automático al cambiar de ventana
       retry: 1, // Reintentar una vez en caso de error
       gcTime: 1000 * 60 * 10, // 10 minutos - tiempo antes de eliminar datos del caché (antes era cacheTime)

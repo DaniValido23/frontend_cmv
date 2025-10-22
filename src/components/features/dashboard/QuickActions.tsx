@@ -2,7 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { useAuthStore } from "@/stores/authStore";
 import { isDoctor } from "@/lib/auth";
-import { UserPlus, FileText, Clock, TrendingUp } from "lucide-react";
+import { FileText, Clock, TrendingUp } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 
 interface Action {
@@ -17,12 +17,6 @@ export default function QuickActions() {
   const isDoctorUser = isDoctor(user);
 
   const actions: Action[] = [
-    {
-      title: "Nuevo Paciente",
-      description: "Registrar un nuevo paciente en el sistema",
-      icon: UserPlus,
-      href: "/patients/new",
-    },
     {
       title: "Nueva Consulta",
       description: "Iniciar una nueva consulta médica",

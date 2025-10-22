@@ -1,11 +1,14 @@
 export interface User {
   id: string;
   username: string;
-  full_name: string;
   email: string;
-  role: "doctor" | "assistant";
-  is_active: boolean;
-  two_factor_enabled: boolean;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  role: "doctor" | "assistant" | "chemist";
+  active: boolean;
+  created_at: string;
+  two_factor_enabled?: boolean;
 }
 
 export interface LoginRequest {

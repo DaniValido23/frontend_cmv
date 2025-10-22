@@ -6,7 +6,7 @@ import { navigateTo } from "@/hooks/useNavigate";
 import ConsultationForm from '@/components/features/consultation/ConsultationForm';
 
 export default function ConsultationPage() {
-  const { isAuthenticated, initAuth } = useAuthStore();
+  const { isAuthenticated, user, initAuth } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,12 +18,20 @@ export default function ConsultationPage() {
   }, []);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      navigateTo("/login");
-    }
-  }, [isLoading, isAuthenticated]);
+    if (isLoading) return;
 
-  if (isLoading || !isAuthenticated) {
+    if (!isAuthenticated) {
+      navigateTo("/login");
+      return;
+    }
+
+    // Solo los doctores pueden acceder a la página de consulta
+    if (user?.role !== "doctor") {
+      navigateTo("/waiting-room");
+    }
+  }, [isLoading, isAuthenticated, user]);
+
+  if (isLoading || !isAuthenticated || user?.role !== "doctor") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />

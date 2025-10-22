@@ -18,13 +18,17 @@ import {
   Activity,
   UserPlus,
   ArrowLeft,
+  FileText,
+  Heart,
+  Briefcase,
+  Home,
 } from "lucide-react";
 import type { Patient } from "@/types/models";
 
 const patientSchema = z.object({
   full_name: z.string().min(3, "Mínimo 3 caracteres"),
   birth_date: z.string().min(1, "Fecha de nacimiento requerida"),
-  gender: z.enum(["male", "female"], {
+  gender: z.enum(["Masculino", "Femenino"], {
     errorMap: () => ({ message: "Selecciona un género" }),
   }),
   phone: z.string().optional(),
@@ -35,6 +39,12 @@ const patientSchema = z.object({
   chronic_conditions: z.string().optional(),
   emergency_contact_name: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
+  // Nuevos campos del backend
+  personal_background: z.string().optional(),
+  obstetric_gynecological_background: z.string().optional(),
+  religion: z.string().optional(),
+  occupation: z.string().optional(),
+  native_of: z.string().optional(),
 });
 
 type PatientFormData = z.infer<typeof patientSchema>;
@@ -132,8 +142,8 @@ export default function PatientForm({
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="">Seleccionar...</option>
-                  <option value="male">Masculino</option>
-                  <option value="female">Femenino</option>
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
                 </select>
                 {errors.gender && (
                   <p className="text-sm text-destructive">
@@ -242,6 +252,91 @@ export default function PatientForm({
                 rows={3}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Describe cualquier condición médica crónica (diabetes, hipertensión, etc.)"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Información Adicional */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <CardTitle>Información Adicional</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="religion">Religión</Label>
+                <Input
+                  id="religion"
+                  {...register("religion")}
+                  error={errors.religion?.message}
+                  placeholder="Ej: Católica, Protestante, etc."
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="occupation">Ocupación</Label>
+                <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="occupation"
+                    {...register("occupation")}
+                    error={errors.occupation?.message}
+                    placeholder="Ej: Ingeniero, Docente, etc."
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="native_of">Lugar de Origen</Label>
+                <div className="relative">
+                  <Home className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    id="native_of"
+                    {...register("native_of")}
+                    error={errors.native_of?.message}
+                    placeholder="Ej: Ciudad, Estado, País"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-2">
+              <Label htmlFor="personal_background">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Antecedentes Personales
+                </div>
+              </Label>
+              <textarea
+                id="personal_background"
+                {...register("personal_background")}
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Historial médico personal relevante"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="obstetric_gynecological_background">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4" />
+                  Antecedentes Ginecoobstétricos
+                </div>
+              </Label>
+              <textarea
+                id="obstetric_gynecological_background"
+                {...register("obstetric_gynecological_background")}
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Gestaciones, partos, cesáreas, etc."
               />
             </div>
           </CardContent>

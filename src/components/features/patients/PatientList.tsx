@@ -16,7 +16,6 @@ import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import {
   User,
-  UserPlus,
   Eye,
   Trash2,
   Phone,
@@ -27,6 +26,18 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import type { Patient } from "@/types/models";
+
+// Función para parsear fechas en formato DD-MM-YYYY del backend
+const parseBirthDate = (dateString: string): Date => {
+  // El backend puede enviar formato: DD-MM-YYYY
+  if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
+    const [day, month, year] = dateString.split('-');
+    // Crear fecha en formato ISO: YYYY-MM-DD
+    return new Date(`${year}-${month}-${day}`);
+  }
+  // Si ya está en formato ISO o reconocible
+  return new Date(dateString);
+};
 
 export default function PatientList() {
   const { data: patients, isLoading } = useAllPatients();
@@ -59,13 +70,6 @@ export default function PatientList() {
             Gestiona la información de tus pacientes
           </p>
         </div>
-        <Button
-          onClick={() => navigate("/patients/new")}
-          size="lg"
-        >
-          <UserPlus className="mr-2 h-4 w-4" />
-          Nuevo Paciente
-        </Button>
       </div>
 
       {/* Search Bar */}
@@ -143,7 +147,7 @@ export default function PatientList() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {format(new Date(patient.birth_date), "dd/MM/yyyy", {
+                      {format(parseBirthDate(patient.birth_date), "dd/MM/yyyy", {
                         locale: es,
                       })}
                     </TableCell>
@@ -218,15 +222,6 @@ export default function PatientList() {
                   ? "Intenta con otro término de búsqueda"
                   : "Comienza agregando tu primer paciente"}
               </p>
-              {!searchTerm && (
-                <Button
-                  className="mt-4"
-                  onClick={() => navigate("/patients/new")}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Crear Primer Paciente
-                </Button>
-              )}
             </div>
           )}
         </CardContent>

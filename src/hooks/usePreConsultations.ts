@@ -117,3 +117,102 @@ export function useDeletePreConsultation() {
     },
   });
 }
+
+// ===== ENDPOINT CONSOLIDADO =====
+// Register pre-consultation + Add to waiting room (Consolidated)
+export interface RegisterAndQueueData {
+  patient_id: string;
+  doctor_id: string;
+  temperature?: number;
+  heart_rate?: number;
+  respiratory_rate?: number;
+  systolic_pressure?: number;
+  diastolic_pressure?: number;
+  oxygen_saturation?: number;
+  blood_glucose?: number;
+  weight?: number;
+  height?: number;
+  current_medications?: string;
+  priority?: "Normal" | "Urgente";
+}
+
+export interface RegisterAndQueueResponse {
+  success: boolean;
+  message: string;
+  data: {
+    pre_consultation: PreConsultation;
+    waiting_room_entry: {
+      id: string;
+      patient: {
+        id: string;
+        first_name: string;
+        last_name: string;
+      };
+      status: string;
+      priority: string;
+      position: number;
+      arrived_at: string;
+    };
+    estimated_wait_minutes: number;
+  };
+}
+
+// Helper para traducir nombres de campos
+function getFieldDisplayName(field: string): string {
+  const fieldNames: Record<string, string> = {
+    patient_id: "Paciente",
+    doctor_id: "Doctor",
+    temperature: "Temperatura",
+    heart_rate: "Frecuencia cardíaca",
+    respiratory_rate: "Frecuencia respiratoria",
+    systolic_pressure: "Presión sistólica",
+    diastolic_pressure: "Presión diastólica",
+    oxygen_saturation: "Saturación de oxígeno",
+    blood_glucose: "Glucosa en sangre",
+    weight: "Peso",
+    height: "Altura",
+    current_medications: "Medicamentos actuales",
+    priority: "Prioridad",
+  };
+  return fieldNames[field] || field;
+}
+
+export function useRegisterAndQueuePatient() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: RegisterAndQueueData) => {
+      const response = await api.post<RegisterAndQueueResponse>(
+        "/pre-consultations/register-and-queue",
+        data
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidar todas las queries relevantes
+      queryClient.invalidateQueries({ queryKey: ["pre-consultations"] });
+      queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      toast.success("Paciente registrado y agregado a la sala de espera exitosamente");
+    },
+    onError: (error: any) => {
+      // Manejo de errores específicos por campo
+      const backendErrors = error.response?.data?.errors;
+
+      if (backendErrors && typeof backendErrors === 'object') {
+        // Si hay errores de validación por campo
+        Object.entries(backendErrors).forEach(([field, messages]) => {
+          const fieldName = getFieldDisplayName(field);
+          const msgArray = Array.isArray(messages) ? messages : [messages];
+          msgArray.forEach((msg: string) => {
+            toast.error(`${fieldName}: ${msg}`);
+          });
+        });
+      } else {
+        // Error genérico
+        toast.error(error.response?.data?.message || "Error al registrar paciente");
+      }
+    },
+  });
+}

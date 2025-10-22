@@ -24,6 +24,18 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
+// Función para parsear fechas en formato DD-MM-YYYY del backend
+const parseBirthDate = (dateString: string): Date => {
+  // El backend puede enviar formato: DD-MM-YYYY
+  if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
+    const [day, month, year] = dateString.split('-');
+    // Crear fecha en formato ISO: YYYY-MM-DD
+    return new Date(`${year}-${month}-${day}`);
+  }
+  // Si ya está en formato ISO o reconocible
+  return new Date(dateString);
+};
+
 interface PatientDetailProps {
   patientId: string;
 }
@@ -127,14 +139,14 @@ export default function PatientDetail({ patientId }: PatientDetailProps) {
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
                 <span>
-                  {format(new Date(patient.birth_date), "dd 'de' MMMM 'de' yyyy", {
+                  {format(parseBirthDate(patient.birth_date), "dd 'de' MMMM 'de' yyyy", {
                     locale: es,
                   })}
                 </span>
               </div>
               <Separator orientation="vertical" className="h-4" />
               <Badge variant="secondary">
-                {patient.gender === "male" ? "Masculino" : "Femenino"}
+                {patient.gender === "Masculino" ? "Masculino" : "Femenino"}
               </Badge>
               {patient.blood_type && (
                 <>

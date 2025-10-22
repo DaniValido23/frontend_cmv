@@ -1,4 +1,4 @@
-export type UserRole = 'doctor' | 'assistant';
+export type UserRole = 'doctor' | 'assistant' | 'chemist';
 
 export interface User {
   id: string;
@@ -18,7 +18,7 @@ export interface CreateUserRequest {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'assistant'; // Solo se pueden crear asistentes
+  role: 'assistant' | 'chemist'; // Se pueden crear asistentes y químicos
   phone?: string;
 }
 

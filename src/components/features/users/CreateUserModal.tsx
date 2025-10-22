@@ -71,7 +71,7 @@ export default function CreateUserModal({ isOpen, onClose }: CreateUserModalProp
           </div>
           <DialogTitle>Crear Nuevo Usuario</DialogTitle>
           <DialogDescription>
-            Solo se pueden crear usuarios con rol de asistente
+            Se pueden crear usuarios con rol de asistente o químico
           </DialogDescription>
         </DialogHeader>
 
@@ -147,6 +147,20 @@ export default function CreateUserModal({ isOpen, onClose }: CreateUserModalProp
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="2831252451"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="role">Rol *</Label>
+            <select
+              id="role"
+              required
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value as 'assistant' | 'chemist' })}
+              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="assistant">Asistente</option>
+              <option value="chemist">Químico</option>
+            </select>
           </div>
 
           <DialogFooter>

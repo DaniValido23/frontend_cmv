@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { usersApi } from '@/lib/api/users';
 import type { User, UpdateUserRequest } from '@/types/user';
 import { useUsersStore } from '@/stores/usersStore';
+import { useAuthStore } from '@/stores/authStore';
+import { queryClient } from '@/lib/queryClient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -17,9 +19,9 @@ interface EditUserModalProps {
 }
 
 export default function EditUserModal({ isOpen, onClose, user }: EditUserModalProps) {
-  const refreshUsers = useUsersStore((state) => state.refreshUsers);
+  const { loadUsers } = useUsersStore();
+  const { user: currentUser, updateUser: updateAuthUser } = useAuthStore();
   const [formData, setFormData] = useState<UpdateUserRequest>({
-    username: '',
     email: '',
     first_name: '',
     last_name: '',
@@ -30,7 +32,6 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
   useEffect(() => {
     if (user) {
       setFormData({
-        username: user.username,
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
@@ -38,6 +39,18 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
       });
     }
   }, [user]);
+
+  // Función para verificar si los datos han cambiado
+  const hasDataChanged = (): boolean => {
+    if (!user) return false;
+
+    return (
+      formData.email.trim() !== user.email.trim() ||
+      formData.first_name.trim() !== user.first_name.trim() ||
+      formData.last_name.trim() !== user.last_name.trim() ||
+      formData.phone.trim() !== (user.phone || '').trim()
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,14 +62,22 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
       // Solo enviar los campos que han cambiado
       const dataToSend: UpdateUserRequest = {};
 
-      if (formData.username !== user.username) dataToSend.username = formData.username;
       if (formData.email !== user.email) dataToSend.email = formData.email;
       if (formData.first_name !== user.first_name) dataToSend.first_name = formData.first_name;
       if (formData.last_name !== user.last_name) dataToSend.last_name = formData.last_name;
       if (formData.phone !== (user.phone || '')) dataToSend.phone = formData.phone;
 
       await usersApi.updateUser(user.id, dataToSend);
-      await refreshUsers();
+
+      // Si el usuario editado es el usuario actual logueado, actualizar sessionStorage
+      if (currentUser && currentUser.id === user.id) {
+        updateAuthUser(dataToSend);
+      }
+
+      // Invalidar queries relevantes para refrescar datos
+      await loadUsers(); // Recargar la tabla automáticamente
+      queryClient.invalidateQueries({ queryKey: ["doctors"] }); // Invalidar lista de doctores
+
       toast.success('Usuario actualizado exitosamente');
       handleClose();
     } catch (err) {
@@ -68,7 +89,6 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
 
   const handleClose = () => {
     setFormData({
-      username: '',
       email: '',
       first_name: '',
       last_name: '',
@@ -93,15 +113,6 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit_username">Usuario</Label>
-            <Input
-              id="edit_username"
-              value={formData.username}
-              onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-            />
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="edit_first_name">Nombre</Label>
@@ -168,7 +179,7 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
             </Button>
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || !hasDataChanged()}
               isLoading={loading}
             >
               <UserCog className="w-4 h-4 mr-2" />

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useCreatePatient } from "@/hooks/usePatients";
+import { useState, useEffect, useMemo } from "react";
+import { useCreatePatient, useUpdatePatient } from "@/hooks/usePatients";
 import {
   Dialog,
   DialogContent,
@@ -9,14 +9,20 @@ import {
   DialogTitle,
 } from "@/components/ui/Modal";
 import Button from "@/components/ui/Button";
-import { User, Phone, Calendar, AlertCircle } from "lucide-react";
+import Autocomplete from "@/components/ui/Autocomplete";
+import { User, Phone, Calendar, AlertCircle, FileText, Heart, Briefcase, Home } from "lucide-react";
 import { toast } from "sonner";
+import type { Patient } from "@/types/models";
+import { frequentReligions } from "@/data/religion_frecuent";
+import { frequentOccupations } from "@/data/occupation_frecuent";
+import { frequentNativeOf } from "@/data/native_of_frecuent";
 
 interface AddPatientModalProps {
   isOpen: boolean;
   onClose: () => void;
   onPatientCreated: (patient: any) => void;
   initialName?: string;
+  initialPatient?: Patient;
 }
 
 // Función para parsear el nombre completo
@@ -41,11 +47,25 @@ function parseFullName(fullName: string): { firstName: string; lastName: string 
   }
 }
 
-// Función para convertir fecha de YYYY-MM-DD a DD-MM-YYYY
+// Función para convertir fecha de YYYY-MM-DD a DD-MM-YYYY para la API
 function formatDateForAPI(dateString: string): string {
   if (!dateString) return "";
+  // El input type="date" devuelve formato YYYY-MM-DD
+  // El backend espera formato DD-MM-YYYY
   const [year, month, day] = dateString.split("-");
   return `${day}-${month}-${year}`;
+}
+
+// Función para convertir fecha de DD-MM-YYYY a YYYY-MM-DD
+function formatDateForInput(dateString: string): string {
+  if (!dateString) return "";
+  // Si ya está en formato YYYY-MM-DD
+  if (dateString.includes("-") && dateString.split("-")[0].length === 4) {
+    return dateString;
+  }
+  // Si está en formato DD-MM-YYYY
+  const [day, month, year] = dateString.split("-");
+  return `${year}-${month}-${day}`;
 }
 
 export default function AddPatientModal({
@@ -53,8 +73,12 @@ export default function AddPatientModal({
   onClose,
   onPatientCreated,
   initialName = "",
+  initialPatient,
 }: AddPatientModalProps) {
   const createPatientMutation = useCreatePatient();
+  const updatePatientMutation = useUpdatePatient();
+
+  const isEditing = !!initialPatient;
 
   // Parse initial name
   const parsedName = parseFullName(initialName);
@@ -66,13 +90,94 @@ export default function AddPatientModal({
   const [phone, setPhone] = useState("");
   const [gender, setGender] = useState("");
   const [allergies, setAllergies] = useState("");
+  const [religion, setReligion] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [nativeOf, setNativeOf] = useState("");
+  const [personalBackground, setPersonalBackground] = useState("");
+  const [obstetricGynecologicalBackground, setObstetricGynecologicalBackground] = useState("");
 
-  // Update names when initialName changes
+  // Filtrar sugerencias de religión
+  const religionSuggestions = useMemo(() => {
+    if (!religion.trim()) return [];
+    return frequentReligions.filter(r =>
+      r.toLowerCase().includes(religion.toLowerCase())
+    ).slice(0, 5);
+  }, [religion]);
+
+  // Filtrar sugerencias de ocupación
+  const occupationSuggestions = useMemo(() => {
+    if (!occupation.trim()) return [];
+    return frequentOccupations.filter(o =>
+      o.toLowerCase().includes(occupation.toLowerCase())
+    ).slice(0, 5);
+  }, [occupation]);
+
+  // Filtrar sugerencias de lugar de origen
+  const nativeOfSuggestions = useMemo(() => {
+    if (!nativeOf.trim()) return [];
+    return frequentNativeOf.filter(n =>
+      n.toLowerCase().includes(nativeOf.toLowerCase())
+    ).slice(0, 5);
+  }, [nativeOf]);
+
+  // Update form when initialPatient changes
   useEffect(() => {
-    const parsed = parseFullName(initialName);
-    setFirstName(parsed.firstName);
-    setLastName(parsed.lastName);
-  }, [initialName]);
+    if (initialPatient) {
+      const names = parseFullName(initialPatient.full_name);
+      setFirstName(names.firstName);
+      setLastName(names.lastName);
+      setBirthDate(formatDateForInput(initialPatient.birth_date));
+      setPhone(initialPatient.phone || "");
+      setGender(initialPatient.gender || "");
+      setAllergies(initialPatient.allergies || "");
+      setReligion(initialPatient.religion || "");
+      setOccupation(initialPatient.occupation || "");
+      setNativeOf(initialPatient.native_of || "");
+      setPersonalBackground(initialPatient.personal_background || "");
+      setObstetricGynecologicalBackground(initialPatient.obstetric_gynecological_background || "");
+    } else if (initialName) {
+      const parsed = parseFullName(initialName);
+      setFirstName(parsed.firstName);
+      setLastName(parsed.lastName);
+    }
+  }, [initialName, initialPatient]);
+
+  // Función para verificar si los datos han cambiado
+  const hasDataChanged = (): boolean => {
+    if (!initialPatient) return true; // Si es nuevo paciente, siempre hay cambios
+
+    const names = parseFullName(initialPatient.full_name);
+    const originalData = {
+      firstName: names.firstName.trim(),
+      lastName: names.lastName.trim(),
+      birthDate: formatDateForAPI(formatDateForInput(initialPatient.birth_date)),
+      phone: (initialPatient.phone || "").trim(),
+      gender: initialPatient.gender || "",
+      allergies: (initialPatient.allergies || "").trim(),
+      religion: (initialPatient.religion || "").trim(),
+      occupation: (initialPatient.occupation || "").trim(),
+      nativeOf: (initialPatient.native_of || "").trim(),
+      personalBackground: (initialPatient.personal_background || "").trim(),
+      obstetricGynecologicalBackground: (initialPatient.obstetric_gynecological_background || "").trim(),
+    };
+
+    const currentData = {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      birthDate: formatDateForAPI(birthDate),
+      phone: phone.trim(),
+      gender: gender,
+      allergies: allergies.trim(),
+      religion: religion.trim(),
+      occupation: occupation.trim(),
+      nativeOf: nativeOf.trim(),
+      personalBackground: personalBackground.trim(),
+      obstetricGynecologicalBackground: obstetricGynecologicalBackground.trim(),
+    };
+
+    // Comparar cada campo
+    return JSON.stringify(originalData) !== JSON.stringify(currentData);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,28 +200,47 @@ export default function AddPatientModal({
       return;
     }
 
-    // Preparar datos para la API
+    // Preparar datos para la API - Enviar todos los campos según el schema del backend
     const patientData = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       birth_date: formatDateForAPI(birthDate),
-      phone: phone.trim() || undefined,
+      phone: phone.trim(),
       gender: gender,
-      allergies: allergies.trim() || "Ninguna",
+      allergies: allergies.trim(),
+      personal_background: personalBackground.trim(),
+      obstetric_gynecological_background: obstetricGynecologicalBackground.trim(),
+      religion: religion.trim(),
+      occupation: occupation.trim(),
+      native_of: nativeOf.trim(),
     };
 
-    createPatientMutation.mutate(patientData, {
-      onSuccess: (response) => {
-        const newPatient = response.data;
-
-        if (newPatient?.id) {
-          onPatientCreated(newPatient);
-          handleClose();
-        } else {
-          toast.error("Error: No se recibió el ID del paciente");
+    if (isEditing && initialPatient) {
+      // Actualizar paciente existente
+      updatePatientMutation.mutate(
+        { id: initialPatient.id, data: patientData },
+        {
+          onSuccess: () => {
+            onPatientCreated(initialPatient); // Trigger refresh
+            handleClose();
+          },
         }
-      },
-    });
+      );
+    } else {
+      // Crear nuevo paciente
+      createPatientMutation.mutate(patientData, {
+        onSuccess: (response) => {
+          const newPatient = response.data;
+
+          if (newPatient?.id) {
+            onPatientCreated(newPatient);
+            handleClose();
+          } else {
+            toast.error("Error: No se recibió el ID del paciente");
+          }
+        },
+      });
+    }
   };
 
   const handleClose = () => {
@@ -127,6 +251,11 @@ export default function AddPatientModal({
     setPhone("");
     setGender("");
     setAllergies("");
+    setReligion("");
+    setOccupation("");
+    setNativeOf("");
+    setPersonalBackground("");
+    setObstetricGynecologicalBackground("");
     onClose();
   };
 
@@ -134,10 +263,12 @@ export default function AddPatientModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Agregar Nuevo Paciente</DialogTitle>
-          <DialogDescription>
-            Completa la información del paciente para registrarlo en el sistema
-          </DialogDescription>
+          <DialogTitle>{isEditing ? "Actualizar Paciente" : "Agregar Nuevo Paciente"}</DialogTitle>
+          {!isEditing && (
+            <DialogDescription>
+              Completa la información del paciente para registrarlo en el sistema
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -193,9 +324,6 @@ export default function AddPatientModal({
               className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
               required
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Formato: DD-MM-YYYY
-            </p>
           </div>
 
           {/* Teléfono */}
@@ -229,7 +357,6 @@ export default function AddPatientModal({
               <option value="">Seleccionar género</option>
               <option value="Masculino">Masculino</option>
               <option value="Femenino">Femenino</option>
-              <option value="Otro">Otro</option>
             </select>
           </div>
 
@@ -250,22 +377,120 @@ export default function AddPatientModal({
             />
           </div>
 
+          {/* Campos adicionales */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Religión */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Religión
+                </label>
+                <Autocomplete
+                  value={religion}
+                  onChange={setReligion}
+                  onSelect={setReligion}
+                  suggestions={religionSuggestions}
+                  placeholder="Ej: Católica, Protestante, etc."
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              {/* Ocupación */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                    Ocupación
+                  </div>
+                </label>
+                <Autocomplete
+                  value={occupation}
+                  onChange={setOccupation}
+                  onSelect={setOccupation}
+                  suggestions={occupationSuggestions}
+                  placeholder="Ej: Ingeniero, Docente, etc."
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              {/* Lugar de Origen */}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-2">
+                  <div className="flex items-center gap-2">
+                    <Home className="h-4 w-4 text-muted-foreground" />
+                    Lugar de Origen
+                  </div>
+                </label>
+                <Autocomplete
+                  value={nativeOf}
+                  onChange={setNativeOf}
+                  onSelect={setNativeOf}
+                  suggestions={nativeOfSuggestions}
+                  placeholder="Ej: Valle Nacional, Tuxtepec, etc."
+                  className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            </div>
+
+            {/* Antecedentes Personales */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  Antecedentes Personales
+                </div>
+              </label>
+              <textarea
+                value={personalBackground}
+                onChange={(e) => setPersonalBackground(e.target.value)}
+                placeholder="Historial médico personal relevante"
+                rows={2}
+                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              />
+            </div>
+
+            {/* Antecedentes Ginecoobstétricos */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                <div className="flex items-center gap-2">
+                  <Heart className="h-4 w-4 text-muted-foreground" />
+                  Antecedentes Ginecoobstétricos
+                </div>
+              </label>
+              <textarea
+                value={obstetricGynecologicalBackground}
+                onChange={(e) => setObstetricGynecologicalBackground(e.target.value)}
+                placeholder="Gestaciones, partos, cesáreas, etc."
+                rows={2}
+                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              />
+            </div>
+          </div>
+
           {/* Buttons */}
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={createPatientMutation.isPending}
+              disabled={createPatientMutation.isPending || updatePatientMutation.isPending}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={createPatientMutation.isPending}
+              disabled={
+                createPatientMutation.isPending ||
+                updatePatientMutation.isPending ||
+                (isEditing && !hasDataChanged())
+              }
             >
-              {createPatientMutation.isPending ? "Guardando..." : "Guardar Paciente"}
+              {(createPatientMutation.isPending || updatePatientMutation.isPending)
+                ? "Guardando..."
+                : isEditing
+                ? "Actualizar Paciente"
+                : "Guardar Paciente"}
             </Button>
           </DialogFooter>
         </form>

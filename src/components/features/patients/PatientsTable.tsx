@@ -1,22 +1,16 @@
 import { useState } from "react";
 import { usePatients, useAllPatients } from "@/hooks/usePatients";
 import { useAuthStore } from "@/stores/authStore";
-import { isDoctor } from "@/lib/auth";
 import { useNavigate } from "@/hooks/useNavigate";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import UpdatePatientModal from "./UpdatePatientModal";
-import { User, Phone, AlertCircle, Edit, FileText, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
-import clsx from "clsx";
+import { User, Info, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 
 export default function PatientsTable() {
   const user = useAuthStore((state) => state.user);
-  const isDoctorUser = isDoctor(user);
   const navigate = useNavigate();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Cargar datos según si hay búsqueda o no
@@ -26,12 +20,7 @@ export default function PatientsTable() {
   const isSearching = searchQuery.trim().length > 0;
   const isLoading = isSearching ? isLoadingAll : isLoadingPaginated;
 
-  const handleUpdateClick = (patientId: string) => {
-    setSelectedPatientId(patientId);
-    setIsUpdateModalOpen(true);
-  };
-
-  const handleViewConsultations = (patientId: string) => {
+  const handleViewInfo = (patientId: string) => {
     navigate(`/patients/${patientId}/consultations`);
   };
 
@@ -98,75 +87,27 @@ export default function PatientsTable() {
           </Card>
         ) : (
           displayedPatients.map((patient) => (
-            <Card key={patient.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-                {/* Avatar */}
-                <div className="bg-primary/10 p-3 rounded-lg shrink-0 self-start sm:self-center">
-                  <User className="h-6 w-6 text-primary" />
+            <Card key={patient.id} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between gap-4">
+                {/* Avatar y Nombre */}
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="bg-primary/10 p-3 rounded-lg shrink-0">
+                    <User className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-lg text-foreground">
+                    {patient.full_name}
+                  </h3>
                 </div>
 
-                {/* Información del paciente */}
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {/* Nombre y Edad */}
-                  <div className="space-y-1">
-                    <h3 className="font-semibold text-base text-foreground">
-                      {patient.full_name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {patient.age} años • {patient.gender}
-                    </p>
-                  </div>
-
-                  {/* Teléfono */}
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">Teléfono</p>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm font-medium">
-                        {patient.phone || "No especificado"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Alergias */}
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">Alergias</p>
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className={clsx(
-                        "text-sm font-medium",
-                        patient.allergies && patient.allergies !== 'NA' && patient.allergies !== 'Ninguna'
-                          ? "text-warning"
-                          : "text-muted-foreground"
-                      )}>
-                        {patient.allergies && patient.allergies !== 'NA' && patient.allergies !== 'Ninguna'
-                          ? patient.allergies
-                          : "Ninguna"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Botones de acción */}
-                <div className="flex flex-row sm:flex-col gap-2 shrink-0">
-                  {isDoctorUser && (
-                    <Button
-                      onClick={() => handleViewConsultations(patient.id)}
-                      className="bg-success/70 hover:bg-success/80 text-success-foreground whitespace-nowrap flex-1 sm:flex-none"
-                      size="sm"
-                    >
-                      <FileText className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Ver Consultas</span>
-                    </Button>
-                  )}
-
+                {/* Botón de acción */}
+                <div className="flex gap-2 shrink-0">
                   <Button
-                    onClick={() => handleUpdateClick(patient.id)}
-                    className="bg-primary/70 hover:bg-primary/80 text-primary-foreground whitespace-nowrap flex-1 sm:flex-none"
+                    onClick={() => handleViewInfo(patient.id)}
+                    className="bg-primary/70 hover:bg-primary/80 text-primary-foreground"
                     size="sm"
                   >
-                    <Edit className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Actualizar</span>
+                    <Info className="h-4 w-4 mr-2" />
+                    Ver Información
                   </Button>
                 </div>
               </div>
@@ -210,17 +151,6 @@ export default function PatientsTable() {
         </div>
       )}
 
-      {/* Modal de actualización */}
-      {selectedPatientId && (
-        <UpdatePatientModal
-          isOpen={isUpdateModalOpen}
-          onClose={() => {
-            setIsUpdateModalOpen(false);
-            setSelectedPatientId(null);
-          }}
-          patientId={selectedPatientId}
-        />
-      )}
     </div>
   );
 }

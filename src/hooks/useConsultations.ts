@@ -78,6 +78,7 @@ export function useCreateConsultation() {
       queryClient.invalidateQueries({ queryKey: ["consultations"] });
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       // No mostramos toast aquí, el formulario maneja el flujo completo
     },
     onError: (error: any) => {
@@ -318,5 +319,95 @@ export function useConsultationAttachments(consultationId: string) {
       return response.data.data;
     },
     enabled: !!consultationId,
+  });
+}
+
+// ===== ENDPOINT CONSOLIDADO =====
+// Create complete consultation (Consolidated)
+export interface CreateCompleteConsultationData {
+  patient_id: string;
+  pre_consultation_id?: string;
+  waiting_room_id?: string;
+  symptoms: string[];
+  diagnoses: string[];
+  prescribed_medications: string[];
+  recommendations?: string;
+  pocus_notes?: string;
+  price: number;
+  generate_prescription?: boolean;
+  medications?: Array<{
+    name: string;
+    dose: string;
+    frequency: string;
+    duration: string;
+  }>;
+  attachments?: File[];
+}
+
+export interface CreateCompleteConsultationResponse {
+  success: boolean;
+  message: string;
+  data: {
+    consultation_id: string;
+    prescription_download_url?: string;
+  };
+}
+
+export function useCreateCompleteConsultation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: CreateCompleteConsultationData) => {
+      const formData = new FormData();
+
+      // Preparar el objeto de datos (sin attachments)
+      const consultationData = {
+        patient_id: data.patient_id,
+        pre_consultation_id: data.pre_consultation_id,
+        waiting_room_id: data.waiting_room_id,
+        symptoms: data.symptoms,
+        diagnoses: data.diagnoses,
+        prescribed_medications: data.prescribed_medications,
+        recommendations: data.recommendations,
+        pocus_notes: data.pocus_notes,
+        price: data.price,
+        generate_prescription: data.generate_prescription ?? true,
+        medications: data.medications,
+      };
+
+      // Agregar el JSON como string en el campo "data"
+      formData.append("data", JSON.stringify(consultationData));
+
+      // Agregar archivos adjuntos si existen
+      if (data.attachments && data.attachments.length > 0) {
+        data.attachments.forEach((file) => {
+          formData.append("attachments", file);
+        });
+      }
+
+      const response = await api.post<CreateCompleteConsultationResponse>(
+        "/consultations",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidar todas las queries relevantes
+      queryClient.invalidateQueries({ queryKey: ["consultations"] });
+      queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
+      queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
+      queryClient.invalidateQueries({ queryKey: ["pre-consultations"] });
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || "Error al crear consulta";
+      toast.error(errorMessage);
+    },
   });
 }

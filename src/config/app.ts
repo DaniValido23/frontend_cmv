@@ -52,7 +52,7 @@ export const APP_CONFIG = {
     login: "/login",
     dashboard: "/dashboard",
     waitingRoom: "/waiting-room",
-    preConsultation: "/pre_consultation",
+    preConsultation: "/pre-consultation",
     consultation: "/consultation",
     patients: "/patients",
     users: "/users",

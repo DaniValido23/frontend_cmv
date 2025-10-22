@@ -7,13 +7,17 @@ interface DashboardStats {
   revenue_today: number;
 }
 
-export function useDashboardStats() {
+export function useDashboardStats(doctorId?: string) {
   return useQuery({
-    queryKey: ["dashboard-stats"],
+    queryKey: ["dashboard-stats", doctorId],
     queryFn: async () => {
-      const response = await api.get("/analytics/dashboard");
+      let url = "/analytics/dashboard";
+      if (doctorId) {
+        url += `?doctor_id=${doctorId}`;
+      }
+      const response = await api.get(url);
       return response.data.data as DashboardStats;
     },
-    refetchInterval: 60000, // Auto-refresh every 60 seconds
+    refetchInterval: 120000, // Auto-refresh every 2 minutes
   });
 }

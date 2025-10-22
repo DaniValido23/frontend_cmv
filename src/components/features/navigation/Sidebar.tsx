@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/authStore";
-import { isDoctor } from "@/lib/auth";
+import { isDoctor, isChemist, isAssistant } from "@/lib/auth";
 import { APP_CONFIG } from "@/config/app";
 import clsx from "clsx";
 import {
@@ -15,6 +15,9 @@ import {
   ClipboardList,
   Moon,
   Sun,
+  Stethoscope,
+  UserCog,
+  FlaskConical,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -22,15 +25,15 @@ interface NavItem {
   name: string;
   href: string;
   icon: LucideIcon;
-  doctorOnly?: boolean;
+  roles?: ('doctor' | 'assistant' | 'chemist')[]; // Roles permitidos para acceder
 }
 
 const navItems: NavItem[] = [
-  { name: "Sala de Espera", href: "/waiting-room", icon: Clock },
-  { name: "Pre-Consulta", href: "/pre_consultation", icon: ClipboardList },
-  { name: "Consulta", href: "/consultation", icon: FileText, doctorOnly: true },
-  { name: "Pacientes", href: "/patients", icon: Users, doctorOnly: true },
-  { name: "Usuarios", href: "/users", icon: User, doctorOnly: true },
+  { name: "Sala de Espera", href: "/waiting-room", icon: Clock, roles: ['doctor', 'assistant'] },
+  { name: "Pre-Consulta", href: "/pre-consultation", icon: ClipboardList, roles: ['doctor', 'assistant'] },
+  { name: "Consulta", href: "/consultation", icon: FileText, roles: ['doctor'] },
+  { name: "Pacientes", href: "/patients", icon: Users, roles: ['doctor', 'chemist'] },
+  { name: "Usuarios", href: "/users", icon: User, roles: ['doctor'] },
 ];
 
 export default function Sidebar() {
@@ -55,9 +58,11 @@ export default function Sidebar() {
     };
   }, []);
 
-  const filteredItems = navItems.filter(
-    (item) => !item.doctorOnly || isDoctor(user)
-  );
+  const filteredItems = navItems.filter((item) => {
+    if (!item.roles) return true; // Si no tiene restricciones de rol, mostrar
+    if (!user) return false;
+    return item.roles.includes(user.role); // Mostrar solo si el rol del usuario está en la lista
+  });
 
   return (
     <>
@@ -81,24 +86,27 @@ export default function Sidebar() {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-6 border-b border-border">
+            <h2 className="text-base font-semibold text-foreground tracking-tight text-center mb-4">
+              {APP_CONFIG.name}
+            </h2>
             {user && (
-              <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-muted">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                  <User className="h-5 w-5 text-primary" />
+                  {user.role === 'doctor' ? (
+                    <Stethoscope className="h-5 w-5 text-primary" />
+                  ) : user.role === 'chemist' ? (
+                    <FlaskConical className="h-5 w-5 text-primary" />
+                  ) : (
+                    <UserCog className="h-5 w-5 text-primary" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground uppercase">
-                    {user.role === "doctor" ? "Doctor" : "Asistente"}
-                  </p>
                   <p className="text-sm font-semibold text-foreground truncate">
-                    {user.full_name}
+                    {user.first_name}
                   </p>
                 </div>
               </div>
             )}
-            <h2 className="text-lg font-semibold text-foreground tracking-tight text-center">
-              {APP_CONFIG.name}
-            </h2>
           </div>
 
           {/* Navigation */}

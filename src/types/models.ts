@@ -20,6 +20,12 @@ export interface Patient {
   emergency_contact_name?: string;
   emergency_contact_phone?: string;
   updated_at?: string;
+  // Nuevos campos del backend
+  personal_background?: string;
+  obstetric_gynecological_background?: string;
+  religion?: string;
+  occupation?: string;
+  native_of?: string;
 }
 
 export interface VitalSigns {
@@ -36,6 +42,23 @@ export interface VitalSigns {
   blood_glucose?: number;
   notes?: string;
   measured_at: string;
+}
+
+export interface PreConsultation {
+  id: string;
+  patient_id: string;
+  temperature?: number;
+  heart_rate?: number;
+  respiratory_rate?: number;
+  systolic_pressure?: number;
+  diastolic_pressure?: number;
+  oxygen_saturation?: number;
+  blood_glucose?: number;
+  weight?: number;
+  height?: number;
+  current_medications?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Consultation {
@@ -97,21 +120,57 @@ export interface Consultation {
   pre_consultation_id?: string;
 }
 
+// Modelo simplificado para GET /waiting-room (sala de espera)
 export interface WaitingRoomEntry {
   id: string;
   status: string;
   arrival_time: string;
   priority: string;
-  notes?: string;
   patient: {
     id: string;
     full_name: string;
     age: number;
-    gender?: string;
-    phone?: string;
-    allergies?: string;
+    gender: string;
   };
-  vital_signs?: {
+  doctor: {
+    id: string;
+    full_name: string;
+  };
+  pre_consultation_id: string;
+}
+
+// Modelo completo para GET /waiting-room/active (consulta activa)
+export interface ActiveConsultationEntry {
+  id: string;
+  patient_id: string;
+  pre_consultation_id: string;
+  doctor_id: string;
+  status: string;
+  arrival_time: string;
+  priority: string;
+  patient: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    full_name: string;
+    birth_date: string;
+    age: number;
+    gender: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    allergies?: string;
+    blood_type?: string;
+    occupation?: string;
+    curp?: string;
+    personal_background?: string;
+    obstetric_gynecological_background?: string;
+    religion?: string;
+    native_of?: string;
+    created_at: string;
+  };
+  pre_consultation?: {
+    id: string;
     temperature?: number;
     heart_rate?: number;
     respiratory_rate?: number;
@@ -122,14 +181,27 @@ export interface WaitingRoomEntry {
     weight?: number;
     height?: number;
     imc?: number;
-    recorded_at?: string;
+    blood_pressure_category?: string;
+    current_medications?: string;
+    pocus_notes?: string;
+    notes?: string;
+    recorded_at: string;
+    recorded_by: {
+      id: string;
+      name: string;
+      role?: string;
+    };
   };
   added_by?: {
     id: string;
     name: string;
-    role: string;
+    role?: string;
   };
-  pre_consultation_id?: string;
+  doctor?: {
+    id: string;
+    name: string;
+    role?: string;
+  };
 }
 
 export interface Attachment {

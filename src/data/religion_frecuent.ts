@@ -1,0 +1,15 @@
+export const frequentReligions = [
+  "Católica",
+  "Protestante",
+  "Evangélica",
+  "Testigo de Jehová",
+  "Cristiana",
+  "Pentecostal",
+  "Adventista",
+  "Bautista",
+  "Presbiteriana",
+  "Metodista",
+  "Mormón",
+  "Ninguna",
+  "Otra",
+];

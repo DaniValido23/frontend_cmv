@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useUsersStore } from '@/stores/usersStore';
 import { usersApi } from '@/lib/api/users';
 import type { User } from '@/types/user';
@@ -9,9 +9,11 @@ import Spinner from '@/components/ui/Spinner';
 import CreateUserModal from './CreateUserModal';
 import EditUserModal from './EditUserModal';
 import ConfirmToggleStatusModal from './ConfirmToggleStatusModal';
-import { User as UserIcon, Mail, Phone, Edit, UserCheck, UserX, UserPlus, RefreshCw } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Edit, UserCheck, UserX, UserPlus, RefreshCw, Filter, Stethoscope, UserCog, FlaskConical } from 'lucide-react';
 import clsx from 'clsx';
 import { toast } from 'sonner';
+
+type StatusFilter = 'all' | 'active' | 'inactive';
 
 export default function UsersTable() {
   const { users, loading, error, loadUsers, refreshUsers } = useUsersStore();
@@ -22,6 +24,7 @@ export default function UsersTable() {
   const [userToToggle, setUserToToggle] = useState<User | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const handleEdit = (user: User) => {
     setSelectedUser(user);
@@ -73,6 +76,14 @@ export default function UsersTable() {
     loadUsers();
   }, []);
 
+  // Filtrar usuarios por estado
+  const filteredUsers = useMemo(() => {
+    if (statusFilter === 'all') return users;
+    if (statusFilter === 'active') return users.filter(u => u.active);
+    if (statusFilter === 'inactive') return users.filter(u => !u.active);
+    return users;
+  }, [users, statusFilter]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -96,16 +107,32 @@ export default function UsersTable() {
     <div className="space-y-4">
       {/* Barra de acciones */}
       <Card className="p-4">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="w-full sm:w-auto"
-          >
-            <RefreshCw className={clsx('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
-            Actualizar
-          </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
+            <Button
+              variant="outline"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCw className={clsx('h-4 w-4 mr-2', refreshing && 'animate-spin')} />
+              Actualizar
+            </Button>
+
+            {/* Filtro por estado */}
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+                className="px-3 py-2 text-sm border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value="all">Todos los usuarios</option>
+                <option value="active">Solo activos</option>
+                <option value="inactive">Solo inactivos</option>
+              </select>
+            </div>
+          </div>
 
           <Button
             onClick={() => setShowCreateModal(true)}
@@ -119,7 +146,7 @@ export default function UsersTable() {
 
       {/* Lista de usuarios */}
       <div className="grid gap-4">
-        {users.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <Card className="p-8">
             <div className="text-center text-muted-foreground">
               <UserIcon className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -127,63 +154,54 @@ export default function UsersTable() {
             </div>
           </Card>
         ) : (
-          users.map((user) => (
+          filteredUsers.map((user) => (
             <Card key={user.id} className="p-4 sm:p-5 hover:shadow-md transition-shadow">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6">
-                {/* Avatar */}
+                {/* Avatar - Icono según rol */}
                 <div className="bg-primary/10 p-3 rounded-lg shrink-0 self-start sm:self-center">
-                  <UserIcon className="h-6 w-6 text-primary" />
+                  {user.role === 'doctor' ? (
+                    <Stethoscope className="h-6 w-6 text-primary" />
+                  ) : user.role === 'chemist' ? (
+                    <FlaskConical className="h-6 w-6 text-primary" />
+                  ) : (
+                    <UserCog className="h-6 w-6 text-primary" />
+                  )}
                 </div>
 
                 {/* Información del usuario */}
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   {/* Nombre y Username */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-center">
                     <h3 className="font-semibold text-base text-foreground">
                       {user.first_name} {user.last_name}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      username: {user.username}
+                      {user.username}
                     </p>
                   </div>
 
                   {/* Email */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-center">
                     <p className="text-xs font-medium text-muted-foreground uppercase">Email</p>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm font-medium truncate">
-                        {user.email}
-                      </span>
-                    </div>
+                    <p className="text-sm font-medium truncate">
+                      {user.email}
+                    </p>
                   </div>
 
                   {/* Teléfono */}
-                  <div className="space-y-1">
+                  <div className="space-y-1 text-center">
                     <p className="text-xs font-medium text-muted-foreground uppercase">Teléfono</p>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <span className="text-sm font-medium">
-                        {user.phone || 'No especificado'}
-                      </span>
-                    </div>
+                    <p className="text-sm font-medium">
+                      {user.phone || 'No especificado'}
+                    </p>
                   </div>
 
-                  {/* Rol y Estado */}
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground uppercase">Información</p>
-                    <div className="flex flex-wrap gap-2 items-center">
-                      {user.role === 'doctor' ? (
-                        <Badge variant="default">Doctor</Badge>
-                      ) : (
-                        <Badge variant="secondary">Asistente</Badge>
-                      )}
-                      {user.active ? (
-                        <Badge variant="success">Activo</Badge>
-                      ) : (
-                        <Badge variant="destructive">Inactivo</Badge>
-                      )}
-                    </div>
+                  {/* Rol */}
+                  <div className="space-y-1 text-center">
+                    <p className="text-xs font-medium text-muted-foreground uppercase">Rol</p>
+                    <p className="text-sm font-medium text-foreground">
+                      {user.role === 'doctor' ? 'Doctor' : user.role === 'chemist' ? 'Químico' : 'Asistente'}
+                    </p>
                   </div>
                 </div>
 

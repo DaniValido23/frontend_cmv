@@ -7,7 +7,14 @@
       "Bash(npm install:*)",
       "Read(//d/**)",
       "Bash(cat:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(npm run dev)",
+      "Bash(git checkout:*)",
+      "Bash(tree:*)",
+      "Bash(awk:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git mv:*)"
     ],
     "deny": [],
     "ask": []

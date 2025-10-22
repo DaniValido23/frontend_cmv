@@ -36,6 +36,24 @@ export default function ConsultationDetailModal({
   if (!consultation) return null;
 
   const formatDate = (dateString: string) => {
+    // El backend puede enviar formato: DD-MM-YYYY HH:mm:ss
+    // Necesitamos convertir a formato que JavaScript pueda parsear
+    if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
+      const [datePart, timePart] = dateString.split(' ');
+      const [day, month, year] = datePart.split('-');
+      // Crear fecha en formato ISO: YYYY-MM-DDTHH:mm:ss
+      const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
+      const date = new Date(isoDate);
+      return date.toLocaleString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    // Si ya está en formato ISO o reconocible
     const date = new Date(dateString);
     return date.toLocaleString('es-MX', {
       year: 'numeric',
@@ -131,51 +149,21 @@ export default function ConsultationDetailModal({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Información del Paciente */}
-          <div className="p-4 rounded-lg border">
-            <div className="flex items-center gap-2 mb-3">
-              <User className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-lg">Información del Paciente</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-              <div>
-                <span className="font-medium text-muted-foreground">Nombre:</span>
-                <p className="font-semibold">{consultation.patient?.first_name} {consultation.patient?.last_name}</p>
-              </div>
-              <div>
-                <span className="font-medium text-muted-foreground">Edad:</span>
-                <p className="font-semibold">{consultation.patient?.age} años</p>
-              </div>
-              <div>
-                <span className="font-medium text-muted-foreground">Género:</span>
-                <p className="font-semibold">{getGenderLabel(consultation.patient?.gender)}</p>
-              </div>
-              <div>
-                <span className="font-medium text-muted-foreground">Teléfono:</span>
-                <p className="font-semibold">{consultation.patient?.phone || "No especificado"}</p>
-              </div>
-              {consultation.patient?.allergies && (
-                <div className="md:col-span-2">
-                  <span className="font-medium text-muted-foreground">Alergias:</span>
-                  <p className="font-semibold text-red-600">{consultation.patient.allergies}</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Signos Vitales */}
+          {/* Pre-consulta */}
           {consultation.vital_signs && (
             <div className="p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="h-5 w-5 text-primary" />
-                <h3 className="font-semibold text-lg">Signos Vitales</h3>
+                <h3 className="font-semibold text-lg">Pre-consulta</h3>
                 {consultation.recorded_by && (
                   <span className="text-sm text-muted-foreground ml-2">
                     • Registrado por: <span className="font-medium text-foreground">{consultation.recorded_by.name}</span>
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+
+              {/* Signos Vitales */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm mb-4">
                 {consultation.vital_signs.temperature && (
                   <div className="flex items-center gap-2">
                     <Thermometer className="h-4 w-4 text-orange-500" />
@@ -260,6 +248,17 @@ export default function ConsultationDetailModal({
                   </div>
                 )}
               </div>
+
+              {/* Medicamentos Actuales */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center gap-2 mb-2">
+                  <Pill className="h-4 w-4 text-primary" />
+                  <h4 className="font-medium text-sm">Medicamentos que toma actualmente</h4>
+                </div>
+                <p className="text-sm text-foreground p-2 bg-muted rounded">
+                  {consultation.vital_signs.current_medications || 'No especificado'}
+                </p>
+              </div>
             </div>
           )}
 
@@ -273,7 +272,7 @@ export default function ConsultationDetailModal({
               {consultation.symptoms.map((symptom, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                  className="px-3 py-1 border border-border bg-muted rounded-full text-sm text-foreground"
                 >
                   {symptom}
                 </span>
@@ -291,7 +290,7 @@ export default function ConsultationDetailModal({
               {consultation.diagnoses.map((diagnosis, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm"
+                  className="px-3 py-1 border border-border bg-muted rounded-full text-sm text-foreground"
                 >
                   {diagnosis}
                 </span>
