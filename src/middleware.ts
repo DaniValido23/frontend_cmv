@@ -1,10 +1,10 @@
 import { defineMiddleware } from "astro:middleware";
 
-const protectedRoutes = ["/waiting-room", "/consultations", "/patients", "/users"];
-const doctorOnlyRoutes = ["/users", "/patients"];
+const protectedRoutes = ["/waiting-room", "/consultations", "/patients", "/users", "/analytics"];
+const doctorOnlyRoutes = ["/users", "/patients", "/analytics"];
 
 export const onRequest = defineMiddleware(async (context, next) => {
-  const { url, redirect } = context;
+  const { url } = context;
 
   // Check if route needs protection
   const isProtected = protectedRoutes.some((route) =>
@@ -15,11 +15,5 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
 
-  // Check authentication from cookie or session storage
-  // Note: In SSR, we need to rely on cookies or server-side session
-  // For client-side auth with sessionStorage, we'll use a different approach
-
-  // For now, allow access and let client-side handle auth
-  // The real protection will be at the API level
   return next();
 });

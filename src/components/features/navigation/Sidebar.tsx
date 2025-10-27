@@ -18,6 +18,7 @@ import {
   Stethoscope,
   UserCog,
   FlaskConical,
+  BarChart3,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { name: "Pre-Consulta", href: "/pre-consultation", icon: ClipboardList, roles: ['doctor', 'assistant'] },
   { name: "Consulta", href: "/consultation", icon: FileText, roles: ['doctor'] },
   { name: "Pacientes", href: "/patients", icon: Users, roles: ['doctor', 'chemist'] },
+  { name: "Estadísticas", href: "/analytics", icon: BarChart3, roles: ['doctor'] },
   { name: "Usuarios", href: "/users", icon: User, roles: ['doctor'] },
 ];
 
