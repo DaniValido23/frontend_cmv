@@ -7,11 +7,11 @@ import {
   Title,
   Tooltip,
   Legend,
+  type TooltipItem,
 } from "chart.js";
 import { useTopPatients } from "@/hooks/useAnalytics";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { type ChartTooltipContext } from "@/utils/formatters";
 
 ChartJS.register(
   CategoryScale,
@@ -22,7 +22,6 @@ ChartJS.register(
   Legend
 );
 
-// Función para truncar nombres a 20 caracteres
 const truncateName = (name: string, maxLength: number = 20): string => {
   if (name.length <= maxLength) return name;
   return name.substring(0, maxLength) + '...';
@@ -86,11 +85,11 @@ export default function TopPatientsChart() {
       },
       tooltip: {
         callbacks: {
-          title: function (context: ChartTooltipContext[]) {
+          title: function (context: TooltipItem<"bar">[]) {
             const index = context[0].dataIndex;
             return data.patients[index].patient_name;
           },
-          label: function (context: ChartTooltipContext) {
+          label: function (context: TooltipItem<"bar">) {
             return `Consultas: ${context.parsed.x}`;
           },
         },

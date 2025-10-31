@@ -14,7 +14,8 @@
       "Bash(awk:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(wc -l \"D:\\Javascript\\frontend_cmv\\src\"/**/*.{ts,tsx})"
     ],
     "deny": [],
     "ask": []

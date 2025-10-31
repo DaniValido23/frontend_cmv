@@ -88,7 +88,7 @@ export default function AddPatientModal({
   const [lastName, setLastName] = useState(parsedName.lastName);
   const [birthDate, setBirthDate] = useState("");
   const [phone, setPhone] = useState("");
-  const [gender, setGender] = useState("");
+  const [gender, setGender] = useState<"Masculino" | "Femenino" | "">("");
   const [allergies, setAllergies] = useState("");
   const [religion, setReligion] = useState("");
   const [occupation, setOccupation] = useState("");
@@ -206,7 +206,7 @@ export default function AddPatientModal({
       last_name: lastName.trim(),
       birth_date: formatDateForAPI(birthDate),
       phone: phone.trim(),
-      gender: gender,
+      gender: gender as "Masculino" | "Femenino",
       allergies: allergies.trim(),
       personal_background: personalBackground.trim(),
       obstetric_gynecological_background: obstetricGynecologicalBackground.trim(),

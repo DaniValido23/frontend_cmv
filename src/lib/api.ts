@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { toast } from "sonner";
 import { navigateTo } from "@/hooks/useNavigate";
+import { parseApiError, logError } from "@/lib/errorHandler";
 
 const API_URL = import.meta.env.PUBLIC_API_URL;
 
@@ -9,36 +10,39 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 30000, // 30 seconds timeout
 });
 
-// Request interceptor - Add token
 api.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     const token = sessionStorage.getItem("token");
-    if (token) {
+    if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
   },
-  (error) => Promise.reject(error)
+  (error: AxiosError) => {
+    logError(parseApiError(error), 'Request Interceptor');
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor - Handle errors
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // No interceptar errores 401 de las rutas de autenticación
+  (error: AxiosError) => {
+    const apiError = parseApiError(error);
+    logError(apiError, 'Response Interceptor');
+
     const isAuthRoute = error.config?.url?.includes('/auth/');
 
-    if (error.response?.status === 401 && !isAuthRoute) {
+    if (apiError.statusCode === 401 && !isAuthRoute) {
       sessionStorage.clear();
       toast.error("Sesión expirada. Inicia sesión nuevamente.");
-      // Usar navigateTo para mantener View Transitions
       navigateTo("/login");
     }
 
-    if (error.response?.status === 403) {
+    if (apiError.statusCode === 403) {
       toast.error("No tienes permisos para realizar esta acción");
     }
 
@@ -46,7 +50,6 @@ api.interceptors.response.use(
   }
 );
 
-// Upload helper with progress
 export async function uploadFile(
   file: File,
   consultationId: string,
@@ -56,13 +59,19 @@ export async function uploadFile(
   formData.append("file", file);
   formData.append("consultation_id", consultationId);
 
-  return api.post("/attachments/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-    onUploadProgress: (progressEvent) => {
-      if (onProgress && progressEvent.total) {
-        const progress = (progressEvent.loaded / progressEvent.total) * 100;
-        onProgress(Math.round(progress));
-      }
-    },
-  });
+  try {
+    return await api.post("/attachments/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const progress = (progressEvent.loaded / progressEvent.total) * 100;
+          onProgress(Math.round(progress));
+        }
+      },
+    });
+  } catch (error) {
+    const apiError = parseApiError(error);
+    logError(apiError, 'Upload File');
+    throw error;
+  }
 }

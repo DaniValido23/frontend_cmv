@@ -34,18 +34,22 @@ export default function ConsultationList() {
   const { data: consultations, isLoading } = useConsultations();
   const { data: patients } = usePatients();
   const deleteMutation = useDeleteConsultation();
+  const navigator = useNavigate();
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({
     isOpen: false,
     id: null,
   });
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const getPatientName = (patientId: string) => {
+  const getPatientName = (patientId?: string) => {
+    if (!patientId) return "Desconocido";
     const patient = patients?.find((p) => p.id === patientId);
     return patient?.full_name || "Desconocido";
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
+    if (!status) return <Badge variant="secondary">Sin estado</Badge>;
+
     const statusMap = {
       pending: { variant: "warning" as const, label: "Pendiente" },
       in_progress: { variant: "default" as const, label: "En Progreso" },
@@ -157,7 +161,7 @@ export default function ConsultationList() {
                     })}
                   </TableCell>
                   <TableCell>{getPatientName(consultation.patient_id)}</TableCell>
-                  <TableCell className="max-w-xs truncate">{consultation.reason}</TableCell>
+                  <TableCell className="max-w-xs truncate">{consultation.reason ?? "N/A"}</TableCell>
                   <TableCell>{getStatusBadge(consultation.status)}</TableCell>
                   <TableCell>
                     {consultation.cost ? `$${consultation.cost.toFixed(2)}` : "N/A"}
@@ -168,7 +172,7 @@ export default function ConsultationList() {
                         size="sm"
                         variant="ghost"
                         onClick={() =>
-                          navigate(`/consultations/${consultation.id}`)
+                          navigator.navigate(`/consultations/${consultation.id}`)
                         }
                       >
                         <Eye className="h-4 w-4 mr-1" />
@@ -195,7 +199,7 @@ export default function ConsultationList() {
       )}
 
       <Modal
-        isOpen={deleteModal.isOpen}
+        open={deleteModal.isOpen}
         onClose={() => setDeleteModal({ isOpen: false, id: null })}
         title="Eliminar Consulta"
       >

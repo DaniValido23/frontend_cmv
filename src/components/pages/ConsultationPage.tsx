@@ -25,7 +25,6 @@ export default function ConsultationPage() {
       return;
     }
 
-    // Solo los doctores pueden acceder a la página de consulta
     if (user?.role !== "doctor") {
       navigateTo("/waiting-room");
     }

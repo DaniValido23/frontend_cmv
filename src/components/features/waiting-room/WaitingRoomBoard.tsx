@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   useWaitingRoom,
   useCallPatient,
@@ -14,7 +14,7 @@ import Badge from "@/components/ui/Badge";
 import Spinner from "@/components/ui/Spinner";
 import Separator from "@/components/ui/Separator";
 import ConfirmRemovePatientModal from "@/components/features/waiting-room/ConfirmRemovePatientModal";
-import { User, Users, FileText, DollarSign, Calendar, Clock, UserCog } from "lucide-react";
+import { User, Users, FileText, DollarSign, Calendar, Clock, UserCog, Stethoscope, Microscope } from "lucide-react";
 import { toast } from "sonner";
 
 export default function WaitingRoomBoard() {
@@ -45,40 +45,39 @@ export default function WaitingRoomBoard() {
     return () => clearInterval(interval);
   }, []);
 
-  // Calcular minutos de espera
-  const getWaitingMinutes = (arrivalTime: string): number => {
-    let arrivalDate: Date;
-
-    // Convertir formato DD-MM-YYYY HH:mm:ss a ISO format
+  // Memoize helper function for parsing arrival time
+  const parseArrivalTime = useCallback((arrivalTime: string): Date => {
     if (arrivalTime.includes('-') && arrivalTime.split('-')[0].length <= 2) {
       const [datePart, timePart] = arrivalTime.split(' ');
       const [day, month, year] = datePart.split('-');
       const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
-      arrivalDate = new Date(isoDate);
-    } else {
-      arrivalDate = new Date(arrivalTime);
+      return new Date(isoDate);
     }
+    return new Date(arrivalTime);
+  }, []);
 
+  // Memoize waiting minutes calculation
+  const getWaitingMinutes = useCallback((arrivalTime: string): number => {
+    const arrivalDate = parseArrivalTime(arrivalTime);
     const diffMs = currentTime.getTime() - arrivalDate.getTime();
-    const diffMinutes = Math.floor(diffMs / 60000);
-    return diffMinutes;
-  };
+    return Math.floor(diffMs / 60000);
+  }, [currentTime, parseArrivalTime]);
 
-  // Obtener el estado del semáforo basado en el tiempo de espera
-  const getTrafficLightState = (arrivalTime: string): 'green' | 'orange' | 'red' => {
+  // Memoize traffic light state calculation
+  const getTrafficLightState = useCallback((arrivalTime: string): 'green' | 'orange' | 'red' => {
     const minutes = getWaitingMinutes(arrivalTime);
 
-    if (minutes >= 20) {
-      return 'red'; // Rojo: más de 20 minutos
-    } else if (minutes >= 10) {
-      return 'orange'; // Naranja: 10-19 minutos
+    if (minutes >= 40) {
+      return 'red'; // Rojo: más de 40 minutos
+    } else if (minutes >= 20) {
+      return 'orange'; // Naranja: 20-39 minutos
     } else {
-      return 'green'; // Verde: 0-9 minutos
+      return 'green'; // Verde: 0-19 minutos
     }
-  };
+  }, [getWaitingMinutes]);
 
-  // Formatear el tiempo de espera para mostrar
-  const formatWaitingTime = (arrivalTime: string): string => {
+  // Memoize waiting time formatting
+  const formatWaitingTime = useCallback((arrivalTime: string): string => {
     const minutes = getWaitingMinutes(arrivalTime);
 
     if (minutes < 1) {
@@ -95,15 +94,34 @@ export default function WaitingRoomBoard() {
       }
       return `${hours}h ${remainingMinutes}m`;
     }
-  };
+  }, [getWaitingMinutes]);
 
-  const getPriorityColor = (priority: string) => {
+  // Memoize priority color function
+  const getPriorityColor = useCallback((priority: string) => {
     const priorityLower = priority.toLowerCase();
     if (priorityLower === "urgente" || priorityLower === "urgent") {
       return "bg-destructive/5 border-destructive/20 hover:shadow-destructive/10";
     }
     return "bg-primary/5 border-primary/20 hover:shadow-primary/10";
-  };
+  }, []);
+
+  // Render record type badge
+  const renderRecordTypeBadge = useCallback((recordType?: string) => {
+    if (recordType === "study") {
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Microscope className="h-3 w-3" />
+          <span>Estudio</span>
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="default" className="flex items-center gap-1">
+        <Stethoscope className="h-3 w-3" />
+        <span>Consulta</span>
+      </Badge>
+    );
+  }, []);
 
   const handleAttend = async (id: string) => {
     changeStatusMutation.mutate(
@@ -140,6 +158,18 @@ export default function WaitingRoomBoard() {
     }
   };
 
+  // Memoize sorted waiting room to avoid re-sorting on every render
+  // IMPORTANT: This must be called before any conditional returns to follow Rules of Hooks
+  const waitingPatients = useMemo(() => {
+    if (!waitingRoom) return [];
+
+    // Sort strictly by arrival time (FIFO - First In First Out)
+    // Priority is shown visually but doesn't affect queue order
+    return [...waitingRoom].sort((a, b) => {
+      return parseArrivalTime(a.arrival_time).getTime() - parseArrivalTime(b.arrival_time).getTime();
+    });
+  }, [waitingRoom, parseArrivalTime]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -148,34 +178,15 @@ export default function WaitingRoomBoard() {
     );
   }
 
-  // Helper function to parse arrival time for sorting
-  const parseArrivalTime = (arrivalTime: string): Date => {
-    if (arrivalTime.includes('-') && arrivalTime.split('-')[0].length <= 2) {
-      const [datePart, timePart] = arrivalTime.split(' ');
-      const [day, month, year] = datePart.split('-');
-      const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
-      return new Date(isoDate);
-    }
-    return new Date(arrivalTime);
-  };
-
-  // Sort strictly by arrival time (FIFO - First In First Out)
-  // Priority is shown visually but doesn't affect queue order
-  const sortedWaitingRoom = [...(waitingRoom || [])].sort((a, b) => {
-    return parseArrivalTime(a.arrival_time).getTime() - parseArrivalTime(b.arrival_time).getTime();
-  });
-
-  const waitingPatients = sortedWaitingRoom;
-
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full min-h-full space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Consultas del día */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-shrink-0">
+        {/* Consultas y Análisis del día */}
         <Card className="p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Consultas del Día</p>
+              <p className="text-sm font-medium text-muted-foreground">Consultas y Análisis del Día</p>
               <p className="text-3xl font-bold text-foreground mt-2">
                 {isLoadingStats ? (
                   <span className="animate-pulse">--</span>
@@ -232,7 +243,7 @@ export default function WaitingRoomBoard() {
       </div>
 
       {/* Lista de pacientes en sala de espera */}
-      <Card className="min-h-[400px] lg:h-[calc(100vh-400px)]">
+      <Card className="flex-1 min-h-0">
         <div className="h-full flex flex-col">
           <div className="p-4 pb-3 sm:p-6 sm:pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -290,11 +301,12 @@ export default function WaitingRoomBoard() {
                     >
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                         <div className="flex-1">
-                          {/* Nombre y edad */}
-                          <div className="flex items-center gap-2 mb-3">
+                          {/* Nombre, edad y tipo de registro */}
+                          <div className="flex items-center gap-2 mb-3 flex-wrap">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <h3 className="font-semibold text-sm sm:text-base">{entry.patient.full_name}</h3>
                             <span className="text-xs text-muted-foreground">({entry.patient.age} años)</span>
+                            {renderRecordTypeBadge(entry.record_type)}
                           </div>
 
                           {/* Información del paciente */}
@@ -308,7 +320,7 @@ export default function WaitingRoomBoard() {
                                     ? 'bg-green-500 border-green-600 shadow-md'
                                     : 'bg-gray-200 border-gray-300'
                                 }`}
-                                title="0-9 minutos"
+                                title="0-20 minutos"
                               />
                               {/* Círculo Naranja */}
                               <div
@@ -317,7 +329,7 @@ export default function WaitingRoomBoard() {
                                     ? 'bg-orange-500 border-orange-600 shadow-md'
                                     : 'bg-gray-200 border-gray-300'
                                 }`}
-                                title="10-19 minutos"
+                                title="20-40 minutos"
                               />
                               {/* Círculo Rojo */}
                               <div
@@ -326,7 +338,7 @@ export default function WaitingRoomBoard() {
                                     ? 'bg-red-500 border-red-600 shadow-md'
                                     : 'bg-gray-200 border-gray-300'
                                 }`}
-                                title="20+ minutos"
+                                title="40+ minutos"
                               />
                             </div>
 

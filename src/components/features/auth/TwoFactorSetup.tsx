@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import QRCode from "qrcode.react";
+import { QRCodeCanvas as QRCode } from "qrcode.react";
 import { Shield, Check, Copy, AlertTriangle } from "lucide-react";
 import { api } from "@/lib/api";
 import Button from "@/components/ui/Button";
@@ -63,7 +63,7 @@ export default function TwoFactorSetup() {
         Configurar Autenticación 2FA
       </Button>
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Modal open={isOpen} onClose={() => setIsOpen(false)}>
         {step === "setup" && (
           <div className="text-center py-8">
             <h3 className="text-lg font-semibold mb-4">Configurando 2FA...</h3>

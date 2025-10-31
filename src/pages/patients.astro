@@ -1,6 +1,6 @@
 ---
 import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
-import PatientsPage from '@/components/pages/PatientsPage';
+import PatientsPageWrapper from '@/components/pages/wrappers/PatientsPageWrapper';
 ---
 
 <DashboardLayout title="Pacientes">
@@ -12,6 +12,6 @@ import PatientsPage from '@/components/pages/PatientsPage';
       </p>
     </div>
 
-    <PatientsPage client:load />
+    <PatientsPageWrapper client:load />
   </div>
 </DashboardLayout>

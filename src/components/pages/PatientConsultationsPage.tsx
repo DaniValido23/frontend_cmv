@@ -12,7 +12,7 @@ import Spinner from '@/components/ui/Spinner';
 import ConsultationDetailModal from '@/components/features/consultations/ConsultationDetailModal';
 import AddPatientModal from '@/components/features/pre-consultation/AddPatientModal';
 import type { Consultation } from '@/types/models';
-import { User, Calendar, FileText, ChevronLeft, Phone, Mail, MapPin, AlertCircle, Cake, Briefcase, Church, MapPinned, History, Activity, Edit } from 'lucide-react';
+import { User, Calendar, FileText, ChevronLeft, ChevronRight, Phone, Mail, MapPin, AlertCircle, Cake, Briefcase, Church, MapPinned, History, Activity, Edit } from 'lucide-react';
 
 interface PatientConsultationsContentProps {
   patientId: string;
@@ -21,8 +21,21 @@ interface PatientConsultationsContentProps {
 function PatientConsultationsContent({ patientId }: PatientConsultationsContentProps) {
   const user = useAuthStore((state) => state.user);
   const isChemistUser = isChemist(user);
-  const { data: consultations, isLoading: isLoadingConsultations } = usePatientConsultations(patientId);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const { data, isLoading: isLoadingConsultations } = usePatientConsultations(
+    patientId,
+    currentPage,
+    pageSize,
+    user?.id
+  );
+  const consultations = data?.consultations || [];
+  const meta = data?.meta;
+
   const { data: patient, isLoading: isLoadingPatient } = usePatient(patientId);
+
   const [selectedConsultation, setSelectedConsultation] = useState<Consultation | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -37,12 +50,10 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
   };
 
   const formatDate = (dateString: string) => {
-    // El backend puede enviar formato: DD-MM-YYYY HH:mm:ss
-    // Necesitamos convertir a formato que JavaScript pueda parsear
+
     if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
       const [datePart, timePart] = dateString.split(' ');
       const [day, month, year] = datePart.split('-');
-      // Crear fecha en formato ISO: YYYY-MM-DDTHH:mm:ss
       const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
       const date = new Date(isoDate);
       return date.toLocaleDateString('es-MX', {
@@ -54,7 +65,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
       });
     }
 
-    // Si ya está en formato ISO o reconocible
     const date = new Date(dateString);
     return date.toLocaleDateString('es-MX', {
       year: 'numeric',
@@ -66,11 +76,9 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
   };
 
   const formatBirthDate = (dateString: string) => {
-    // El backend puede enviar formato: DD-MM-YYYY
-    // Necesitamos convertir a formato que JavaScript pueda parsear
+
     if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
       const [day, month, year] = dateString.split('-');
-      // Crear fecha en formato ISO: YYYY-MM-DD
       const isoDate = `${year}-${month}-${day}`;
       const date = new Date(isoDate);
       return date.toLocaleDateString('es-MX', {
@@ -80,7 +88,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
       });
     }
 
-    // Si ya está en formato ISO o reconocible
     const date = new Date(dateString);
     return date.toLocaleDateString('es-MX', {
       year: 'numeric',
@@ -99,7 +106,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
 
   return (
     <div className="space-y-6">
-      {/* Botón de volver */}
       <button
         onClick={() => navigateTo('/patients')}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -108,7 +114,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
         Volver a Pacientes
       </button>
 
-      {/* Card con información completa del paciente */}
       <Card className="overflow-hidden">
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 border-b">
           <div className="flex items-center justify-between gap-3">
@@ -126,7 +131,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
               </div>
             </div>
 
-            {/* Botón de Actualizar - Solo visible para no químicos */}
             {!isChemistUser && (
               <Button
                 onClick={handleUpdateClick}
@@ -140,11 +144,9 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
         </div>
 
         <div className="p-4">
-          {/* Información General */}
           <div className="mb-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Información General</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Fecha de Nacimiento */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <Cake className="h-4 w-4 text-primary" />
@@ -157,7 +159,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Edad */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <Activity className="h-4 w-4 text-primary" />
@@ -170,7 +171,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Género */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <User className="h-4 w-4 text-primary" />
@@ -183,7 +183,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Teléfono */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <Phone className="h-4 w-4 text-primary" />
@@ -196,7 +195,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Email */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <Mail className="h-4 w-4 text-primary" />
@@ -209,7 +207,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Dirección */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <MapPin className="h-4 w-4 text-primary" />
@@ -222,7 +219,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Ocupación */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <Briefcase className="h-4 w-4 text-primary" />
@@ -235,7 +231,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Religión */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <Church className="h-4 w-4 text-primary" />
@@ -248,7 +243,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Originario de */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <MapPinned className="h-4 w-4 text-primary" />
@@ -263,7 +257,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
             </div>
           </div>
 
-          {/* Antecedentes Médicos */}
           <div className="border-t pt-4">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">Antecedentes Médicos</h3>
             <div className="grid grid-cols-1 gap-4">
@@ -286,7 +279,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Antecedentes Personales */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <History className="h-4 w-4 text-primary" />
@@ -299,7 +291,6 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 </div>
               </div>
 
-              {/* Antecedentes Gineco-Obstétricos */}
               <div className="flex items-start gap-2">
                 <div className="p-1.5 bg-primary/10 rounded-lg">
                   <FileText className="h-4 w-4 text-primary" />
@@ -316,20 +307,19 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
         </div>
       </Card>
 
-      {/* Lista de Consultas */}
       <Card>
         <div className="p-6 border-b">
           <div className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold">Historial de Consultas</h2>
             <span className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-              {consultations?.length || 0}
+              {meta?.total_items || 0}
             </span>
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          {!consultations || consultations.length === 0 ? (
+          {consultations.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                 <FileText className="h-8 w-8 text-muted-foreground" />
@@ -338,23 +328,20 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 No hay consultas registradas
               </p>
               <p className="text-sm text-muted-foreground">
-                Este paciente aún no tiene consultas en el historial
+                Este paciente aún no tiene consultas tuyas en el historial
               </p>
             </div>
           ) : (
             <table className="w-full">
               <thead className="bg-muted/50">
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Fecha
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Diagnósticos
+                  <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Tipo
                   </th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Doctor
-                  </th>
-                  <th className="text-right px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Precio
                   </th>
                 </tr>
@@ -366,32 +353,20 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                     onClick={() => handleConsultationClick(consultation)}
                     className="hover:bg-muted/50 cursor-pointer transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm font-medium">
                           {formatDate(consultation.consultation_date)}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {consultation.diagnoses.map((diagnosis, index) => (
-                          <span
-                            key={index}
-                            className="inline-flex px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full"
-                          >
-                            {diagnosis}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-muted-foreground">
-                        {consultation.doctor?.name || 'No especificado'}
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span className="text-sm font-medium text-foreground">
+                        {consultation.consultation_type === 'study' ? 'Estudio' : 'Consulta'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span className="text-sm font-semibold text-green-600">
                         ${consultation.price.toFixed(2)}
                       </span>
@@ -402,16 +377,42 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
             </table>
           )}
         </div>
+
+        {meta && meta.total_pages > 1 && (
+          <div className="p-6 border-t flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Página {meta.page} de {meta.total_pages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={!meta.has_previous}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!meta.has_next}
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Modal de Detalle */}
       <ConsultationDetailModal
         open={showModal}
         onOpenChange={setShowModal}
         consultation={selectedConsultation}
       />
 
-      {/* Modal de Actualización */}
       <AddPatientModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
@@ -432,10 +433,11 @@ export default function PatientConsultationsPage({ patientId }: PatientConsultat
 
   useEffect(() => {
     initAuth();
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setIsLoading(false);
     }, 100);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [initAuth]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -445,7 +447,6 @@ export default function PatientConsultationsPage({ patientId }: PatientConsultat
       return;
     }
 
-    // Solo doctores y químicos pueden ver consultas de pacientes
     if (user?.role !== "doctor" && user?.role !== "chemist") {
       navigateTo("/waiting-room");
     }

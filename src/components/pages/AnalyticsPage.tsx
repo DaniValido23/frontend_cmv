@@ -8,6 +8,12 @@ import ConsultationsChart from "@/components/features/analytics/ConsultationsCha
 import RevenueChart from "@/components/features/analytics/RevenueChart";
 import WeightEvolutionChart from "@/components/features/analytics/WeightEvolutionChart";
 import TopPatientsChart from "@/components/features/analytics/TopPatientsChart";
+import TopSymptomsChart from "@/components/features/analytics/TopSymptomsChart";
+import TopDiagnosesChart from "@/components/features/analytics/TopDiagnosesChart";
+import TopMedicationsChart from "@/components/features/analytics/TopMedicationsChart";
+import GenderStatsChart from "@/components/features/analytics/GenderStatsChart";
+import GlucoseHistoryChart from "@/components/features/analytics/GlucoseHistoryChart";
+import BloodPressureHistoryChart from "@/components/features/analytics/BloodPressureHistoryChart";
 
 export default function AnalyticsPage() {
   const { isAuthenticated, user, initAuth } = useAuthStore();
@@ -29,7 +35,6 @@ export default function AnalyticsPage() {
       return;
     }
 
-    // Solo los doctores pueden acceder a esta página
     if (user?.role !== "doctor") {
       navigateTo("/waiting-room");
     }
@@ -46,10 +51,8 @@ export default function AnalyticsPage() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="space-y-6">
-        {/* Cards de totales */}
         <TotalStatsCards />
 
-        {/* Primera fila: 2 gráficas lado a lado */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <ConsultationsChart />
           <RevenueChart />
@@ -59,6 +62,21 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <WeightEvolutionChart />
           <TopPatientsChart />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TopSymptomsChart />
+          <TopDiagnosesChart />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TopMedicationsChart />
+          <GenderStatsChart />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <BloodPressureHistoryChart />
+          <GlucoseHistoryChart />
         </div>
       </div>
     </QueryClientProvider>

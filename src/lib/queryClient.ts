@@ -1,17 +1,42 @@
 import { QueryClient } from "@tanstack/react-query";
 
-// Instancia GLOBAL y SINGLETON de QueryClient
-// Esta instancia se comparte entre todas las páginas para mantener el caché consistente
+/**
+ * Query stale time configurations for different data types
+ */
+export const QUERY_STALE_TIME = {
+  REALTIME: 30 * 1000, // 30 seconds
+
+  SHORT: 1 * 60 * 1000, // 1 minute
+
+  MEDIUM: 5 * 60 * 1000, // 5 minutes
+
+  LONG: 15 * 60 * 1000, // 15 minutes
+} as const;
+
+/**
+ * Global singleton QueryClient instance
+ * Shared across all pages to maintain consistent cache
+ */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 0, // Siempre considerar los datos como obsoletos para refetch inmediato
-      refetchOnWindowFocus: false, // No refetch automático al cambiar de ventana
-      retry: 1, // Reintentar una vez en caso de error
-      gcTime: 1000 * 60 * 10, // 10 minutos - tiempo antes de eliminar datos del caché (antes era cacheTime)
+      staleTime: QUERY_STALE_TIME.SHORT,
+
+      refetchOnWindowFocus: false,
+
+      // Retry once on error
+      retry: 1,
+
+      gcTime: 10 * 60 * 1000,
+
+      refetchOnMount: true,
+
+      refetchOnReconnect: false,
     },
     mutations: {
-      retry: 0, // No reintentar mutaciones fallidas automáticamente
+      retry: 0,
+
+      networkMode: 'online' as const,
     },
   },
 });

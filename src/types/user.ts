@@ -18,7 +18,7 @@ export interface CreateUserRequest {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'assistant' | 'chemist'; // Se pueden crear asistentes y químicos
+  role: 'assistant' | 'chemist';
   phone?: string;
 }
 

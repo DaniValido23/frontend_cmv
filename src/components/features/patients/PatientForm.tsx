@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useEffect } from "react";
 import { useNavigate } from "@/hooks/useNavigate";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -24,15 +25,16 @@ import {
   Home,
 } from "lucide-react";
 import type { Patient } from "@/types/models";
+import { toast } from "sonner";
 
 const patientSchema = z.object({
-  full_name: z.string().min(3, "Mínimo 3 caracteres"),
-  birth_date: z.string().min(1, "Fecha de nacimiento requerida"),
+  full_name: z.string().min(3, "Nombre Completo: Mínimo 3 caracteres"),
+  birth_date: z.string().optional(),
   gender: z.enum(["Masculino", "Femenino"], {
-    errorMap: () => ({ message: "Selecciona un género" }),
+    errorMap: () => ({ message: "Género: Debes seleccionar un género" }),
   }),
   phone: z.string().optional(),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  email: z.string().email("Correo Electrónico: Formato de email inválido").optional().or(z.literal("")),
   address: z.string().optional(),
   blood_type: z.string().optional(),
   allergies: z.string().optional(),
@@ -69,6 +71,17 @@ export default function PatientForm({
     resolver: zodResolver(patientSchema),
     defaultValues: initialData || {},
   });
+
+  // Mostrar errores de validación en toasters
+  useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      // Mostrar el primer error encontrado
+      const firstError = Object.values(errors)[0];
+      if (firstError?.message) {
+        toast.error(firstError.message);
+      }
+    }
+  }, [errors]);
 
   return (
     <div className="space-y-6">
@@ -118,7 +131,7 @@ export default function PatientForm({
 
               <div className="space-y-2">
                 <Label htmlFor="birth_date">
-                  Fecha de Nacimiento <span className="text-destructive">*</span>
+                  Fecha de Nacimiento
                 </Label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -312,7 +325,7 @@ export default function PatientForm({
               <Label htmlFor="personal_background">
                 <div className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  Antecedentes Personales
+                  Antecedentes Personales patológicos y no patológicos
                 </div>
               </Label>
               <textarea
@@ -328,7 +341,7 @@ export default function PatientForm({
               <Label htmlFor="obstetric_gynecological_background">
                 <div className="flex items-center gap-2">
                   <Heart className="h-4 w-4" />
-                  Antecedentes Ginecoobstétricos
+                  Antecedentes Ginecoobstétricos sí aplica
                 </div>
               </Label>
               <textarea

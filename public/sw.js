@@ -1,5 +1,5 @@
 // Version with timestamp for automatic cache invalidation
-const CACHE_VERSION = 'medical-clinic-v__BUILD_TIME__';
+const CACHE_VERSION = 'medical-clinic-v1761955041817';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
@@ -105,7 +105,16 @@ async function cacheFirstStrategy(request) {
 
     if (networkResponse.ok) {
       const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, networkResponse.clone());
+      // Only cache requests with supported schemes (http/https)
+      const url = new URL(request.url);
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        try {
+          await cache.put(request, networkResponse.clone());
+        } catch (cacheError) {
+          // Ignore cache errors from unsupported schemes (chrome-extension, etc.)
+          console.warn('Failed to cache request:', request.url, cacheError);
+        }
+      }
     }
 
     return networkResponse;

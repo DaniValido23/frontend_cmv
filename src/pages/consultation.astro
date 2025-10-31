@@ -1,8 +1,8 @@
 ---
 import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
-import ConsultationPage from '@/components/pages/ConsultationPage';
+import ConsultationPageWrapper from '@/components/pages/wrappers/ConsultationPageWrapper';
 ---
 
 <DashboardLayout title="Consulta">
-  <ConsultationPage client:load />
+  <ConsultationPageWrapper client:load />
 </DashboardLayout>

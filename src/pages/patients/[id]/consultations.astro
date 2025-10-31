@@ -1,10 +1,6 @@
 ---
 import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
-import PatientConsultationsPage from '@/components/pages/PatientConsultationsPage';
-
-export function getStaticPaths() {
-  return [];
-}
+import PatientConsultationsPageWrapper from '@/components/pages/wrappers/PatientConsultationsPageWrapper';
 
 const { id } = Astro.params;
 
@@ -14,5 +10,5 @@ if (!id) {
 ---
 
 <DashboardLayout title="Consultas del Paciente">
-  <PatientConsultationsPage client:load patientId={id} />
+  <PatientConsultationsPageWrapper client:load patientId={id} />
 </DashboardLayout>

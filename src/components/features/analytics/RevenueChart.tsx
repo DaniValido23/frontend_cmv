@@ -8,11 +8,12 @@ import {
   Title,
   Tooltip,
   Legend,
+  type TooltipItem,
 } from "chart.js";
 import { useRevenueAnalytics } from "@/hooks/useAnalytics";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { type GroupBy, formatLabel, formatMoney, type ChartTooltipContext, type ChartScaleContext } from "@/utils/formatters";
+import { type GroupBy, formatLabel, formatMoney } from "@/utils/formatters";
 
 ChartJS.register(
   CategoryScale,
@@ -42,7 +43,6 @@ export default function RevenueChart() {
     );
   }
 
-  // Obtener el array correcto según el tipo de agrupación
   const getDataArray = () => {
     if (!data) return null;
     if (groupBy === 'day') return data.daily_revenue;
@@ -91,8 +91,8 @@ export default function RevenueChart() {
       },
       tooltip: {
         callbacks: {
-          label: function (context: ChartTooltipContext) {
-            return `Ingresos: $${formatMoney(context.parsed.y)}`;
+          label: function (context: TooltipItem<"bar">) {
+            return `Ingresos: $${formatMoney(context.parsed.y ?? 0)}`;
           },
         },
       },

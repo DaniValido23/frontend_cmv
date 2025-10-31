@@ -7,9 +7,9 @@ import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Autocomplete from "@/components/ui/Autocomplete";
 import AddPatientModal from "./AddPatientModal";
-import { User, Heart, Thermometer, Activity, Weight, Ruler, Droplet, Clock, UserPlus, Wind, Stethoscope, Pill, UserCog } from "lucide-react";
+import { User, Heart, Thermometer, Activity, Weight, Ruler, Droplet, Clock, UserPlus, Wind, Stethoscope, Pill, UserCog, FileText, Microscope } from "lucide-react";
 import { toast } from "sonner";
-import type { Patient } from "@/types/models";
+import type { Patient, RecordType } from "@/types/models";
 
 export default function PreConsultationForm() {
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ export default function PreConsultationForm() {
   const [selectedPatientId, setSelectedPatientId] = useState("");
   const [patientSearch, setPatientSearch] = useState("");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [recordType, setRecordType] = useState<RecordType>("consultation"); // Nuevo: tipo de registro
 
   // Cargar lista ligera de pacientes (solo id y full_name)
   const { data: patientsList = [], isLoading: loadingPatients } = useAllPatients();
@@ -76,7 +77,7 @@ export default function PreConsultationForm() {
     // No es necesario setear selectedPatient porque usePatient(id) lo cargará automáticamente
   };
 
-  // Formateo automático para temperatura y peso (XX.X)
+  // Formateo automático para temperatura (XX.X)
   const handleTwoDigitDecimalInput = (
     value: string,
     setter: (value: string) => void
@@ -98,6 +99,28 @@ export default function PreConsultationForm() {
     } else {
       // Insertar punto después de 2 dígitos: XX.X
       setter(`${limited.slice(0, 2)}.${limited.slice(2)}`);
+    }
+  };
+
+  // Formateo automático para peso (XXX.X)
+  const handleWeightInput = (value: string) => {
+    // Remover cualquier cosa que no sea número
+    const cleaned = value.replace(/[^\d]/g, '');
+
+    if (cleaned.length === 0) {
+      setWeight('');
+      return;
+    }
+
+    // Limitar a 4 dígitos (XXX.X)
+    const limited = cleaned.slice(0, 4);
+
+    // Formatear con punto decimal automático
+    if (limited.length <= 3) {
+      setWeight(limited);
+    } else {
+      // Insertar punto después de 3 dígitos: XXX.X
+      setWeight(`${limited.slice(0, 3)}.${limited.slice(3)}`);
     }
   };
 
@@ -250,19 +273,30 @@ export default function PreConsultationForm() {
       return;
     }
 
+    // Validación 4: Según tipo de registro
+    const hasAnyVitalSign = temperature || heartRate || respiratoryRate ||
+      systolicPressure || diastolicPressure || oxygenSaturation ||
+      bloodGlucose || weight || height;
+
+    if (recordType === "consultation" && !hasAnyVitalSign) {
+      toast.error("Para consultas, debes ingresar al menos un signo vital");
+      return;
+    }
+
     // Preparar datos consolidados (pre-consulta + sala de espera)
     const consolidatedData = {
       patient_id: selectedPatientId,
       doctor_id: selectedDoctorId,
-      temperature: temperature ? parseFloat(temperature) : undefined,
-      heart_rate: heartRate ? parseInt(heartRate) : undefined,
-      respiratory_rate: respiratoryRate ? parseInt(respiratoryRate) : undefined,
-      systolic_pressure: systolicPressure ? parseInt(systolicPressure) : undefined,
-      diastolic_pressure: diastolicPressure ? parseInt(diastolicPressure) : undefined,
-      oxygen_saturation: oxygenSaturation ? parseFloat(oxygenSaturation) : undefined,
-      blood_glucose: bloodGlucose ? parseInt(bloodGlucose) : undefined,
-      weight: weight ? parseFloat(weight) : undefined,
-      height: height ? parseFloat(height) : undefined,
+      record_type: recordType, // Nuevo campo
+      temperature: recordType === "consultation" && temperature ? parseFloat(temperature) : undefined,
+      heart_rate: recordType === "consultation" && heartRate ? parseInt(heartRate) : undefined,
+      respiratory_rate: recordType === "consultation" && respiratoryRate ? parseInt(respiratoryRate) : undefined,
+      systolic_pressure: recordType === "consultation" && systolicPressure ? parseInt(systolicPressure) : undefined,
+      diastolic_pressure: recordType === "consultation" && diastolicPressure ? parseInt(diastolicPressure) : undefined,
+      oxygen_saturation: recordType === "consultation" && oxygenSaturation ? parseFloat(oxygenSaturation) : undefined,
+      blood_glucose: recordType === "consultation" && bloodGlucose ? parseInt(bloodGlucose) : undefined,
+      weight: recordType === "consultation" && weight ? parseFloat(weight) : undefined,
+      height: recordType === "consultation" && height ? parseFloat(height) : undefined,
       current_medications: currentMedications.trim() || undefined,
       priority: priority as "Normal" | "Urgente",
     };
@@ -274,6 +308,7 @@ export default function PreConsultationForm() {
         setSelectedPatientId("");
         setSelectedDoctorId("");
         setPatientSearch("");
+        setRecordType("consultation"); // Resetear a consulta por defecto
         setTemperature("");
         setHeartRate("");
         setRespiratoryRate("");
@@ -379,7 +414,55 @@ export default function PreConsultationForm() {
             )}
           </div>
 
-          {/* Signos Vitales */}
+          {/* Tipo de Registro */}
+          <div>
+            <label className="block text-sm font-medium mb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                Tipo de Registro <span className="text-destructive">*</span>
+              </div>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Opción: Consulta Médica */}
+              <button
+                type="button"
+                onClick={() => setRecordType("consultation")}
+                className={`flex items-center gap-3 p-4 border-2 rounded-lg transition-all ${
+                  recordType === "consultation"
+                    ? "border-primary bg-primary/10 shadow-md"
+                    : "border-border hover:border-primary/50 bg-background"
+                }`}
+              >
+                <Stethoscope className={`h-6 w-6 ${recordType === "consultation" ? "text-primary" : "text-muted-foreground"}`} />
+                <div className="text-left">
+                  <p className={`font-semibold ${recordType === "consultation" ? "text-primary" : "text-foreground"}`}>
+                    Consulta Médica
+                  </p>
+                </div>
+              </button>
+
+              {/* Opción: Estudio Clínico */}
+              <button
+                type="button"
+                onClick={() => setRecordType("study")}
+                className={`flex items-center gap-3 p-4 border-2 rounded-lg transition-all ${
+                  recordType === "study"
+                    ? "border-primary bg-primary/10 shadow-md"
+                    : "border-border hover:border-primary/50 bg-background"
+                }`}
+              >
+                <Microscope className={`h-6 w-6 ${recordType === "study" ? "text-primary" : "text-muted-foreground"}`} />
+                <div className="text-left">
+                  <p className={`font-semibold ${recordType === "study" ? "text-primary" : "text-foreground"}`}>
+                    Estudio Clínico
+                  </p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Signos Vitales - Solo visible para consultas */}
+          {recordType === "consultation" && (
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Heart className="h-5 w-5 text-muted-foreground" />
@@ -522,7 +605,7 @@ export default function PreConsultationForm() {
                   type="text"
                   inputMode="decimal"
                   value={weight}
-                  onChange={(e) => handleTwoDigitDecimalInput(e.target.value, setWeight)}
+                  onChange={(e) => handleWeightInput(e.target.value)}
                   placeholder="70.5"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -547,8 +630,10 @@ export default function PreConsultationForm() {
               </div>
             </div>
           </div>
+          )}
 
-          {/* Medicamentos Actuales */}
+          {/* Medicamentos Actuales - Solo visible para consultas */}
+          {recordType === "consultation" && (
           <div>
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
@@ -573,6 +658,7 @@ export default function PreConsultationForm() {
               </span>
             </div>
           </div>
+          )}
 
           {/* Prioridad */}
           <div>

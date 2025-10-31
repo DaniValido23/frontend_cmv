@@ -33,7 +33,9 @@ export default function WaitingRoomPage() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <WaitingRoomBoard />
+      <div className="h-full">
+        <WaitingRoomBoard />
+      </div>
     </QueryClientProvider>
   );
 }

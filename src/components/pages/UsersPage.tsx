@@ -28,7 +28,6 @@ export default function UsersPage() {
       return;
     }
 
-    // Solo los doctores pueden acceder a esta página
     if (user?.role !== "doctor") {
       navigateTo("/waiting-room");
     }

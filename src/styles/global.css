@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Estilos de Sonner para toasts */
 :root {
   --normal-bg: #ffffff;
   --normal-border: #e4e4e7;
@@ -23,7 +22,6 @@
   --info-text: #145a76;
 }
 
-/* Estilos de Sonner para tema oscuro */
 .dark {
   --normal-bg: #18181b;
   --normal-border: #27272a;

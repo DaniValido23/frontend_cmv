@@ -9,13 +9,14 @@ import {
   Title,
   Tooltip,
   Legend,
+  type TooltipItem,
 } from "chart.js";
 import { usePatientWeightHistory } from "@/hooks/useAnalytics";
 import { useAllPatients } from "@/hooks/usePatients";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select";
-import { formatDateLabel, type ChartTooltipContext } from "@/utils/formatters";
+import { formatDateLabel } from "@/utils/formatters";
 
 ChartJS.register(
   CategoryScale,
@@ -98,8 +99,8 @@ export default function WeightEvolutionChart() {
       },
       tooltip: {
         callbacks: {
-          label: function (context: ChartTooltipContext) {
-            return `Peso: ${context.parsed.y.toFixed(2)} kg`;
+          label: function (context: TooltipItem<"line">) {
+            return `Peso: ${(context.parsed.y ?? 0).toFixed(2)} kg`;
           },
         },
       },

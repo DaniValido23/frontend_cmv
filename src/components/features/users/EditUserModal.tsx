@@ -45,10 +45,10 @@ export default function EditUserModal({ isOpen, onClose, user }: EditUserModalPr
     if (!user) return false;
 
     return (
-      formData.email.trim() !== user.email.trim() ||
-      formData.first_name.trim() !== user.first_name.trim() ||
-      formData.last_name.trim() !== user.last_name.trim() ||
-      formData.phone.trim() !== (user.phone || '').trim()
+      (formData.email ?? '').trim() !== user.email.trim() ||
+      (formData.first_name ?? '').trim() !== user.first_name.trim() ||
+      (formData.last_name ?? '').trim() !== user.last_name.trim() ||
+      (formData.phone ?? '').trim() !== (user.phone || '').trim()
     );
   };
 

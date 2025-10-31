@@ -6,7 +6,7 @@ export const APP_CONFIG = {
   // Información de la aplicación
   name: "Centro Medico Del Valle",
   description: "Sistema de gestión de consultas médicas para doctores y asistentes",
-  version: "1.0.0",
+  version: "1.0.1",
 
   // Tema
   theme: {

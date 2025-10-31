@@ -31,7 +31,6 @@ export function isChemist(user: User | null): boolean {
 export function canAccessRoute(user: User | null, route: string): boolean {
   if (!user) return false;
 
-  // Rutas exclusivas para doctor
   const doctorOnlyRoutes = ["/users", "/analytics", "/consultation"];
   const isDoctorRoute = doctorOnlyRoutes.some((r) => route.startsWith(r));
 
@@ -39,12 +38,10 @@ export function canAccessRoute(user: User | null, route: string): boolean {
     return isDoctor(user);
   }
 
-  // Rutas accesibles para doctor y chemist (pacientes y consultas de pacientes)
   if (route.startsWith("/patients") || route.includes("/consultations")) {
     return isDoctor(user) || isChemist(user);
   }
 
-  // Rutas accesibles para doctor y assistant (sala de espera, pre-consultas)
   const assistantRoutes = ["/waiting-room", "/pre-consultation"];
   const isAssistantRoute = assistantRoutes.some((r) => route.startsWith(r));
 

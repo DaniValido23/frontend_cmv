@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { WaitingRoomEntry, ActiveConsultationEntry } from "@/types/models";
-import { toast } from "sonner";
+import { handleError } from "@/lib/errorHandler";
+import { QUERY_STALE_TIME } from "@/lib/queryClient";
 
-// Get waiting room queue
 export function useWaitingRoom(doctorId?: string, status: string = "En espera") {
   return useQuery({
     queryKey: ["waiting-room", doctorId, status],
@@ -13,11 +13,12 @@ export function useWaitingRoom(doctorId?: string, status: string = "En espera") 
         url += `&doctor_id=${doctorId}`;
       }
       const response = await api.get(url);
-      // La respuesta tiene estructura: {data: {queue: [], total_count: number}}
       const queue = response.data.data?.queue || [];
       return queue as WaitingRoomEntry[];
     },
-    refetchInterval: 120000, // Auto-refresh every 2 minutes
+    staleTime: QUERY_STALE_TIME.REALTIME, // 30 seconds - data changes frequently
+    refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
+    refetchOnWindowFocus: true, // Refetch when returning to window for fresh data
   });
 }
 
@@ -33,15 +34,13 @@ export function useAddToWaitingRoom() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      // No mostramos toast aquí porque el formulario redirige inmediatamente
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al agregar a sala de espera");
+    onError: (error: unknown) => {
+      handleError(error, "Error al agregar a sala de espera");
     },
   });
 }
 
-// Call patient (change status to 'in_consultation')
 export function useCallPatient() {
   const queryClient = useQueryClient();
 
@@ -53,15 +52,13 @@ export function useCallPatient() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast.success("Paciente llamado a consulta");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al llamar paciente");
+    onError: (error: unknown) => {
+      handleError(error, "Error al llamar paciente");
     },
   });
 }
 
-// Complete waiting room entry (remove from queue)
 export function useCompleteWaitingRoomEntry() {
   const queryClient = useQueryClient();
 
@@ -73,15 +70,13 @@ export function useCompleteWaitingRoomEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast.success("Entrada de sala de espera completada");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al completar entrada");
+    onError: (error: unknown) => {
+      handleError(error, "Error al completar entrada");
     },
   });
 }
 
-// Remove from waiting room
 export function useRemoveFromWaitingRoom() {
   const queryClient = useQueryClient();
 
@@ -93,15 +88,13 @@ export function useRemoveFromWaitingRoom() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast.success("Paciente removido de la sala de espera");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al remover de sala de espera");
+    onError: (error: unknown) => {
+      handleError(error, "Error al remover de sala de espera");
     },
   });
 }
 
-// Change patient status in waiting room
 export function useChangeWaitingRoomStatus() {
   const queryClient = useQueryClient();
 
@@ -114,24 +107,23 @@ export function useChangeWaitingRoomStatus() {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      // No mostramos toast aquí porque las acciones que usan este hook redirigen inmediatamente
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al cambiar status del paciente");
+    onError: (error: unknown) => {
+      handleError(error, "Error al cambiar status del paciente");
     },
   });
 }
 
-// Get active consultation
 export function useActiveConsultation() {
   return useQuery<ActiveConsultationEntry | null>({
     queryKey: ["active-consultation"],
     queryFn: async () => {
       const response = await api.get("/waiting-room/active");
-      // El endpoint devuelve la consulta activa completa con toda la info del paciente
-      // Puede ser null si no hay paciente activo
+
       return (response.data.data as ActiveConsultationEntry) || null;
     },
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    staleTime: QUERY_STALE_TIME.REALTIME, // 30 seconds - changes frequently
+    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refetch when returning for latest consultation state
   });
 }

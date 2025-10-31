@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import type { Consultation, VitalSigns } from "@/types/models";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import type { Consultation, VitalSigns, ConsultationsResponse } from "@/types/models";
+import { handleError } from "@/lib/errorHandler";
 
-// Get all consultations
 export function useConsultations() {
   return useQuery({
     queryKey: ["consultations"],
@@ -14,7 +14,6 @@ export function useConsultations() {
   });
 }
 
-// Get single consultation
 export function useConsultation(id: string) {
   return useQuery({
     queryKey: ["consultations", id],
@@ -26,21 +25,29 @@ export function useConsultation(id: string) {
   });
 }
 
-// Get consultations by patient
-export function usePatientConsultations(patientId: string) {
+export function usePatientConsultations(
+  patientId: string,
+  page: number = 1,
+  pageSize: number = 10,
+  doctorId?: string
+) {
   return useQuery({
-    queryKey: ["consultations", "patient", patientId],
+    queryKey: ["consultations", "patient", patientId, page, pageSize, doctorId],
     queryFn: async () => {
       const response = await api.get("/consultations", {
-        params: { patient_id: patientId },
+        params: {
+          patient_id: patientId,
+          page,
+          page_size: pageSize,
+          ...(doctorId && { doctor_id: doctorId }),
+        },
       });
-      return response.data.data.consultations as Consultation[];
+      return response.data.data as ConsultationsResponse;
     },
     enabled: !!patientId,
   });
 }
 
-// Get consultations by date range
 export function useConsultationsByDate(from: string, to: string) {
   return useQuery({
     queryKey: ["consultations", "date", from, to],
@@ -54,13 +61,19 @@ export function useConsultationsByDate(from: string, to: string) {
   });
 }
 
-// Create consultation
 export interface CreateConsultationData {
   patient_id: string;
   pre_consultation_id?: string;
+  consultation_type: "consultation" | "study";
   symptoms: string[];
   diagnoses: string[];
-  prescribed_medications: string[];
+  medications: Array<{
+    name: string;
+    dosage: string;
+    route: string;
+    frequency: string;
+    duration: string;
+  }>;
   recommendations?: string;
   pocus_notes?: string;
   price: number;
@@ -79,16 +92,13 @@ export function useCreateConsultation() {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      // No mostramos toast aquí, el formulario maneja el flujo completo
     },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || "Error al guardar consulta";
-      toast.error(errorMessage);
+    onError: (error: unknown) => {
+      handleError(error, "Error al guardar consulta");
     },
   });
 }
 
-// Update consultation
 export function useUpdateConsultation() {
   const queryClient = useQueryClient();
 
@@ -102,13 +112,12 @@ export function useUpdateConsultation() {
       queryClient.invalidateQueries({ queryKey: ["consultations", variables.id] });
       toast.success("Consulta actualizada exitosamente");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al actualizar consulta");
+    onError: (error: unknown) => {
+      handleError(error, "Error al actualizar consulta");
     },
   });
 }
 
-// Complete consultation
 export function useCompleteConsultation() {
   const queryClient = useQueryClient();
 
@@ -123,13 +132,12 @@ export function useCompleteConsultation() {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       toast.success("Consulta completada exitosamente");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al completar consulta");
+    onError: (error: unknown) => {
+      handleError(error, "Error al completar consulta");
     },
   });
 }
 
-// Add vital signs
 export function useAddVitalSigns() {
   const queryClient = useQueryClient();
 
@@ -140,45 +148,13 @@ export function useAddVitalSigns() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["consultations", variables.consultationId] });
-      toast.success("Signos vitales registrados exitosamente");
     },
-    onError: (error: any) => {
-      const backendErrors = error.response?.data?.errors;
-
-      // Si hay errores de validación específicos del backend
-      if (backendErrors && typeof backendErrors === 'object') {
-        const errorMessages = Object.entries(backendErrors)
-          .map(([field, messages]) => {
-            const fieldName = getFieldName(field);
-            const msgArray = Array.isArray(messages) ? messages : [messages];
-            return `${fieldName}: ${msgArray.join(', ')}`;
-          })
-          .join('\n');
-
-        toast.error(errorMessages || "Error de validación en signos vitales");
-      } else {
-        // Mensaje genérico si no hay errores específicos
-        toast.error(error.response?.data?.message || "Error al registrar signos vitales");
-      }
+    onError: (error: unknown) => {
+      handleError(error, "Error al registrar signos vitales");
     },
   });
 }
 
-// Helper para traducir nombres de campos
-function getFieldName(field: string): string {
-  const fieldNames: Record<string, string> = {
-    blood_pressure: "Presión arterial",
-    heart_rate: "Frecuencia cardíaca",
-    temperature: "Temperatura",
-    respiratory_rate: "Frecuencia respiratoria",
-    oxygen_saturation: "Saturación de oxígeno",
-    weight: "Peso",
-    height: "Altura",
-  };
-  return fieldNames[field] || field;
-}
-
-// Add attachment
 export function useAddAttachment() {
   const queryClient = useQueryClient();
 
@@ -199,15 +175,13 @@ export function useAddAttachment() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["consultations", variables.consultationId] });
-      toast.success("Archivo adjuntado exitosamente");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al adjuntar archivo");
+    onError: (error: unknown) => {
+      handleError(error, "Error al adjuntar archivo");
     },
   });
 }
 
-// Delete consultation
 export function useDeleteConsultation() {
   const queryClient = useQueryClient();
 
@@ -218,15 +192,13 @@ export function useDeleteConsultation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["consultations"] });
-      toast.success("Consulta eliminada exitosamente");
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al eliminar consulta");
+    onError: (error: unknown) => {
+      handleError(error, "Error al eliminar consulta");
     },
   });
 }
 
-// Generate prescription
 export interface GeneratePrescriptionData {
   consultation_id: string;
   medications: Array<{
@@ -259,13 +231,12 @@ export function useGeneratePrescription() {
       const response = await api.post<GeneratePrescriptionResponse>("/prescriptions/generate", data);
       return response.data;
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Error al generar receta");
+    onError: (error: unknown) => {
+      handleError(error, "Error al generar receta");
     },
   });
 }
 
-// Upload attachment
 export interface UploadAttachmentData {
   consultation_id: string;
   file: File;
@@ -288,7 +259,6 @@ export function useUploadAttachment() {
   });
 }
 
-// Get consultation attachments
 export interface ConsultationAttachment {
   id: string;
   consultation_id: string;
@@ -322,25 +292,21 @@ export function useConsultationAttachments(consultationId: string) {
   });
 }
 
-// ===== ENDPOINT CONSOLIDADO =====
-// Create complete consultation (Consolidated)
 export interface CreateCompleteConsultationData {
   patient_id: string;
   pre_consultation_id?: string;
-  waiting_room_id?: string;
   symptoms: string[];
   diagnoses: string[];
-  prescribed_medications: string[];
-  recommendations?: string;
-  pocus_notes?: string;
-  price: number;
-  generate_prescription?: boolean;
   medications?: Array<{
     name: string;
-    dose: string;
+    dosage: string;
+    route: string;
     frequency: string;
     duration: string;
   }>;
+  recommendations?: string;
+  pocus_notes?: string;
+  price: number;
   attachments?: File[];
 }
 
@@ -360,25 +326,19 @@ export function useCreateCompleteConsultation() {
     mutationFn: async (data: CreateCompleteConsultationData) => {
       const formData = new FormData();
 
-      // Preparar el objeto de datos (sin attachments)
       const consultationData = {
         patient_id: data.patient_id,
         pre_consultation_id: data.pre_consultation_id,
-        waiting_room_id: data.waiting_room_id,
         symptoms: data.symptoms,
         diagnoses: data.diagnoses,
-        prescribed_medications: data.prescribed_medications,
+        medications: data.medications,
         recommendations: data.recommendations,
         pocus_notes: data.pocus_notes,
         price: data.price,
-        generate_prescription: data.generate_prescription ?? true,
-        medications: data.medications,
       };
 
-      // Agregar el JSON como string en el campo "data"
       formData.append("data", JSON.stringify(consultationData));
 
-      // Agregar archivos adjuntos si existen
       if (data.attachments && data.attachments.length > 0) {
         data.attachments.forEach((file) => {
           formData.append("attachments", file);
@@ -397,7 +357,6 @@ export function useCreateCompleteConsultation() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalidar todas las queries relevantes
       queryClient.invalidateQueries({ queryKey: ["consultations"] });
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
@@ -405,9 +364,8 @@ export function useCreateCompleteConsultation() {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || "Error al crear consulta";
-      toast.error(errorMessage);
+    onError: (error: unknown) => {
+      handleError(error, "Error al crear consulta");
     },
   });
 }

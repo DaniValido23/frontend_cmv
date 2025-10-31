@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { usePatients, useAllPatients } from "@/hooks/usePatients";
 import { useAuthStore } from "@/stores/authStore";
 import { useNavigate } from "@/hooks/useNavigate";
+import { useDebounce } from "@/hooks/useDebounce";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import { User, Info, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
@@ -13,16 +14,36 @@ export default function PatientsTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Debounce search query to reduce re-renders and API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
   // Cargar datos según si hay búsqueda o no
   const { data: paginatedData, isLoading: isLoadingPaginated } = usePatients(currentPage, 10);
   const { data: allPatients, isLoading: isLoadingAll } = useAllPatients();
 
-  const isSearching = searchQuery.trim().length > 0;
+  const isSearching = debouncedSearchQuery.trim().length > 0;
   const isLoading = isSearching ? isLoadingAll : isLoadingPaginated;
 
   const handleViewInfo = (patientId: string) => {
     navigate(`/patients/${patientId}/consultations`);
   };
+
+  // Determinar qué pacientes mostrar
+  const paginatedPatients = paginatedData?.patients || [];
+  const meta = paginatedData?.meta;
+
+  // Memoize filtered patients to avoid re-filtering on every render
+  // IMPORTANT: This must be called before any conditional returns to follow Rules of Hooks
+  const displayedPatients = useMemo(() => {
+    if (!isSearching) return paginatedPatients;
+
+    const query = debouncedSearchQuery.toLowerCase();
+    return (allPatients || []).filter(patient =>
+      patient.full_name?.toLowerCase().includes(query) ||
+      patient.first_name?.toLowerCase().includes(query) ||
+      patient.last_name?.toLowerCase().includes(query)
+    );
+  }, [isSearching, debouncedSearchQuery, allPatients, paginatedPatients]);
 
   if (isLoading) {
     return (
@@ -31,18 +52,6 @@ export default function PatientsTable() {
       </div>
     );
   }
-
-  // Determinar qué pacientes mostrar
-  const paginatedPatients = paginatedData?.patients || [];
-  const meta = paginatedData?.meta;
-
-  const displayedPatients = isSearching
-    ? (allPatients || []).filter(patient =>
-        patient.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        patient.last_name?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : paginatedPatients;
 
   return (
     <div className="space-y-4">

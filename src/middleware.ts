@@ -6,7 +6,6 @@ const doctorOnlyRoutes = ["/users", "/patients", "/analytics"];
 export const onRequest = defineMiddleware(async (context, next) => {
   const { url } = context;
 
-  // Check if route needs protection
   const isProtected = protectedRoutes.some((route) =>
     url.pathname.startsWith(route)
   );

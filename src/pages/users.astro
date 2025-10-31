@@ -1,6 +1,6 @@
 ---
 import DashboardLayout from '@/components/layouts/DashboardLayout.astro';
-import UsersPage from '@/components/pages/UsersPage';
+import UsersPageWrapper from '@/components/pages/wrappers/UsersPageWrapper';
 ---
 
 <DashboardLayout title="Gestión de Usuarios">
@@ -12,6 +12,6 @@ import UsersPage from '@/components/pages/UsersPage';
       </p>
     </div>
 
-    <UsersPage client:load />
+    <UsersPageWrapper client:load />
   </div>
 </DashboardLayout>

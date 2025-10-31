@@ -1,3 +1,6 @@
+// Tipo de registro: consulta médica o estudio clínico
+export type RecordType = "consultation" | "study";
+
 export interface Patient {
   id: string;
   first_name: string;
@@ -47,6 +50,7 @@ export interface VitalSigns {
 export interface PreConsultation {
   id: string;
   patient_id: string;
+  record_type: RecordType; // Tipo de registro: consultation o study
   temperature?: number;
   heart_rate?: number;
   respiratory_rate?: number;
@@ -56,7 +60,14 @@ export interface PreConsultation {
   blood_glucose?: number;
   weight?: number;
   height?: number;
+  imc?: number;
   current_medications?: string;
+  recorded_at?: string;
+  recorded_by?: {
+    id: string;
+    name: string;
+    role?: string;
+  };
   created_at: string;
   updated_at?: string;
 }
@@ -66,12 +77,13 @@ export interface Consultation {
   patient_id?: string;
   doctor_id: string;
   assistant_id?: string;
+  consultation_type: RecordType; // Tipo de consulta: consultation o study
   scheduled_at?: string;
   started_at?: string;
   completed_at?: string;
-  symptoms: string[];
-  diagnoses: string[];
-  prescribed_medications: string[];
+  symptoms?: string[];
+  diagnoses?: string[];
+  prescribed_medications?: string[];
   recommendations?: string;
   pocus_notes?: string;
   diagnosis?: string;
@@ -79,7 +91,9 @@ export interface Consultation {
   prescription?: string;
   notes?: string;
   follow_up_date?: string;
+  reason?: string; // Motivo de la consulta
   price: number;
+  cost?: number; // Alias o costo adicional
   consultation_date: string;
   status?: "pending" | "in_progress" | "completed" | "cancelled";
   created_at: string;
@@ -120,12 +134,26 @@ export interface Consultation {
   pre_consultation_id?: string;
 }
 
+// Respuesta paginada para consultas de un paciente
+export interface ConsultationsResponse {
+  consultations: Consultation[];
+  meta: {
+    page: number;
+    page_size: number;
+    total_items: number;
+    total_pages: number;
+    has_next: boolean;
+    has_previous: boolean;
+  };
+}
+
 // Modelo simplificado para GET /waiting-room (sala de espera)
 export interface WaitingRoomEntry {
   id: string;
   status: string;
   arrival_time: string;
   priority: string;
+  record_type?: RecordType; // Tipo de registro: consultation o study
   patient: {
     id: string;
     full_name: string;
@@ -171,6 +199,7 @@ export interface ActiveConsultationEntry {
   };
   pre_consultation?: {
     id: string;
+    record_type: RecordType; // Tipo de registro: consultation o study
     temperature?: number;
     heart_rate?: number;
     respiratory_rate?: number;

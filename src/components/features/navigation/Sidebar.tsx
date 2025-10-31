@@ -39,15 +39,26 @@ const navItems: NavItem[] = [
 ];
 
 export default function Sidebar() {
-  const [isOpen, setIsOpen] = useState(true);
-  const [currentPath, setCurrentPath] = useState(
-    typeof window !== 'undefined' ? window.location.pathname : ''
-  );
+  const [isOpen, setIsOpen] = useState(false); // Start closed on mobile to avoid hydration issues
+  const [currentPath, setCurrentPath] = useState('');
+  const [isClient, setIsClient] = useState(false);
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
 
+  // Initialize client-side state after hydration
+  useEffect(() => {
+    setIsClient(true);
+    setCurrentPath(window.location.pathname);
+    // On desktop, open sidebar by default
+    if (window.innerWidth >= 1024) {
+      setIsOpen(true);
+    }
+  }, []);
+
   // Actualizar el path cuando hay una transición de página
   useEffect(() => {
+    if (!isClient) return;
+
     const updatePath = () => {
       setCurrentPath(window.location.pathname);
     };
@@ -58,7 +69,7 @@ export default function Sidebar() {
     return () => {
       document.removeEventListener('astro:page-load', updatePath);
     };
-  }, []);
+  }, [isClient]);
 
   const filteredItems = navItems.filter((item) => {
     if (!item.roles) return true; // Si no tiene restricciones de rol, mostrar

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useAllPatients, useDeletePatient } from "@/hooks/usePatients";
 import { useNavigate } from "@/hooks/useNavigate";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   Table,
   TableBody,
@@ -23,21 +24,9 @@ import {
   Search,
   Users,
 } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { format } from "date-fns/format";
+import { es } from "date-fns/locale/es";
 import type { Patient } from "@/types/models";
-
-// Función para parsear fechas en formato DD-MM-YYYY del backend
-const parseBirthDate = (dateString: string): Date => {
-  // El backend puede enviar formato: DD-MM-YYYY
-  if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
-    const [day, month, year] = dateString.split('-');
-    // Crear fecha en formato ISO: YYYY-MM-DD
-    return new Date(`${year}-${month}-${day}`);
-  }
-  // Si ya está en formato ISO o reconocible
-  return new Date(dateString);
-};
 
 export default function PatientList() {
   const { data: patients, isLoading } = useAllPatients();
@@ -45,12 +34,34 @@ export default function PatientList() {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
-  const filteredPatients = patients?.filter(
-    (patient) =>
-      patient.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.phone?.includes(searchTerm) ||
-      patient.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Debounce search term to reduce filtering on every keystroke
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+
+  // Memoize parsed birth date function
+  const parseBirthDate = useCallback((dateString: string): Date => {
+    // El backend puede enviar formato: DD-MM-YYYY
+    if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
+      const [day, month, year] = dateString.split('-');
+      // Crear fecha en formato ISO: YYYY-MM-DD
+      return new Date(`${year}-${month}-${day}`);
+    }
+    // Si ya está en formato ISO o reconocible
+    return new Date(dateString);
+  }, []);
+
+  // Memoize filtered patients to avoid re-filtering on every render
+  const filteredPatients = useMemo(() => {
+    if (!patients) return [];
+    if (!debouncedSearchTerm.trim()) return patients;
+
+    const query = debouncedSearchTerm.toLowerCase();
+    return patients.filter(
+      (patient) =>
+        patient.full_name.toLowerCase().includes(query) ||
+        patient.phone?.includes(debouncedSearchTerm) ||
+        patient.email?.toLowerCase().includes(query)
+    );
+  }, [patients, debouncedSearchTerm]);
 
   if (isLoading) {
     return (

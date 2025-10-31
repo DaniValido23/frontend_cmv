@@ -36,7 +36,6 @@ export interface CreatePreConsultationResponse {
   data: PreConsultation;
 }
 
-// Get all pre-consultations
 export function usePreConsultations() {
   return useQuery({
     queryKey: ["pre-consultations"],
@@ -47,7 +46,6 @@ export function usePreConsultations() {
   });
 }
 
-// Get single pre-consultation
 export function usePreConsultation(id: string) {
   return useQuery({
     queryKey: ["pre-consultations", id],
@@ -59,7 +57,6 @@ export function usePreConsultation(id: string) {
   });
 }
 
-// Create pre-consultation
 export function useCreatePreConsultation() {
   const queryClient = useQueryClient();
 
@@ -77,7 +74,6 @@ export function useCreatePreConsultation() {
   });
 }
 
-// Update pre-consultation
 export function useUpdatePreConsultation() {
   const queryClient = useQueryClient();
 
@@ -99,7 +95,6 @@ export function useUpdatePreConsultation() {
   });
 }
 
-// Delete pre-consultation
 export function useDeletePreConsultation() {
   const queryClient = useQueryClient();
 
@@ -118,11 +113,10 @@ export function useDeletePreConsultation() {
   });
 }
 
-// ===== ENDPOINT CONSOLIDADO =====
-// Register pre-consultation + Add to waiting room (Consolidated)
 export interface RegisterAndQueueData {
   patient_id: string;
   doctor_id: string;
+  record_type: "consultation" | "study";
   temperature?: number;
   heart_rate?: number;
   respiratory_rate?: number;
@@ -157,7 +151,6 @@ export interface RegisterAndQueueResponse {
   };
 }
 
-// Helper para traducir nombres de campos
 function getFieldDisplayName(field: string): string {
   const fieldNames: Record<string, string> = {
     patient_id: "Paciente",
@@ -189,7 +182,6 @@ export function useRegisterAndQueuePatient() {
       return response.data;
     },
     onSuccess: () => {
-      // Invalidar todas las queries relevantes
       queryClient.invalidateQueries({ queryKey: ["pre-consultations"] });
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["patients"] });
@@ -197,11 +189,9 @@ export function useRegisterAndQueuePatient() {
       toast.success("Paciente registrado y agregado a la sala de espera exitosamente");
     },
     onError: (error: any) => {
-      // Manejo de errores específicos por campo
       const backendErrors = error.response?.data?.errors;
 
       if (backendErrors && typeof backendErrors === 'object') {
-        // Si hay errores de validación por campo
         Object.entries(backendErrors).forEach(([field, messages]) => {
           const fieldName = getFieldDisplayName(field);
           const msgArray = Array.isArray(messages) ? messages : [messages];
@@ -210,7 +200,6 @@ export function useRegisterAndQueuePatient() {
           });
         });
       } else {
-        // Error genérico
         toast.error(error.response?.data?.message || "Error al registrar paciente");
       }
     },

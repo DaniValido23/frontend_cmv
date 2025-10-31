@@ -9,7 +9,6 @@ const SW_PATH = join(__dirname, '..', 'public', 'sw.js');
 
 try {
   let swContent = readFileSync(SW_PATH, 'utf8');
-  // Replace any timestamp with the placeholder
   swContent = swContent.replace(/medical-clinic-v\d+/g, 'medical-clinic-v__BUILD_TIME__');
   writeFileSync(SW_PATH, swContent, 'utf8');
   console.log('✓ Service Worker version placeholder restored');

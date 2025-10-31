@@ -8,7 +8,7 @@ import {
 import { useConsultationAttachments, useUploadAttachment } from "@/hooks/useConsultations";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Consultation } from "@/types/models";
-import { User, Heart, Thermometer, Activity, Weight, Ruler, Droplet, Calendar, DollarSign, FileText, Pill, Wind, Stethoscope, Paperclip, Upload, Download, Trash2, FileIcon } from "lucide-react";
+import { User, Heart, Thermometer, Activity, Weight, Ruler, Droplet, Calendar, DollarSign, FileText, Pill, Wind, Stethoscope, Paperclip, Upload, Download, Trash2, FileIcon, ClipboardList, FlaskConical } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { toast } from "sonner";
 
@@ -145,12 +145,25 @@ export default function ConsultationDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Detalle de Consulta</DialogTitle>
+          <div className="flex items-center gap-3">
+            <DialogTitle>Detalle de Consulta</DialogTitle>
+            {consultation.consultation_type === "consultation" ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                <ClipboardList className="h-3.5 w-3.5" />
+                Consulta
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-900 text-white dark:bg-gray-800 dark:text-gray-100">
+                <FlaskConical className="h-3.5 w-3.5" />
+                Estudio
+              </span>
+            )}
+          </div>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Pre-consulta */}
-          {consultation.vital_signs && (
+          {consultation.consultation_type === "consultation" && consultation.vital_signs && (
             <div className="p-4 rounded-lg border">
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="h-5 w-5 text-primary" />
@@ -263,61 +276,79 @@ export default function ConsultationDetailModal({
           )}
 
           {/* Síntomas */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-lg">Síntomas</h3>
+          {consultation.consultation_type === "consultation" && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">Síntomas</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {consultation.symptoms && consultation.symptoms.length > 0 ? (
+                  consultation.symptoms.map((symptom, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 border border-border bg-muted rounded-full text-sm text-foreground"
+                    >
+                      {symptom}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No se registraron síntomas</p>
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {consultation.symptoms.map((symptom, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 border border-border bg-muted rounded-full text-sm text-foreground"
-                >
-                  {symptom}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Diagnósticos */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-lg">Diagnósticos</h3>
+          {consultation.consultation_type === "consultation" && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">Diagnósticos</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {consultation.diagnoses && consultation.diagnoses.length > 0 ? (
+                  consultation.diagnoses.map((diagnosis, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 border border-border bg-muted rounded-full text-sm text-foreground"
+                    >
+                      {diagnosis}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No se registraron diagnósticos</p>
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {consultation.diagnoses.map((diagnosis, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 border border-border bg-muted rounded-full text-sm text-foreground"
-                >
-                  {diagnosis}
-                </span>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Medicamentos Recetados */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Pill className="h-5 w-5 text-primary" />
-              <h3 className="font-semibold text-lg">Medicamentos Recetados</h3>
+          {consultation.consultation_type === "consultation" && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Pill className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">Medicamentos Recetados</h3>
+              </div>
+              <div className="space-y-2">
+                {consultation.prescribed_medications && consultation.prescribed_medications.length > 0 ? (
+                  consultation.prescribed_medications.map((medication, index) => (
+                    <div
+                      key={index}
+                      className="p-3 border rounded-lg"
+                    >
+                      <p className="text-sm font-medium">{medication}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">No se recetaron medicamentos</p>
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              {consultation.prescribed_medications.map((medication, index) => (
-                <div
-                  key={index}
-                  className="p-3 border rounded-lg"
-                >
-                  <p className="text-sm font-medium">{medication}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* Recomendaciones */}
-          {consultation.recommendations && (
+          {consultation.consultation_type === "consultation" && consultation.recommendations && (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="h-5 w-5 text-primary" />
@@ -330,7 +361,7 @@ export default function ConsultationDetailModal({
           )}
 
           {/* Notas POCUS */}
-          {consultation.pocus_notes && (
+          {consultation.consultation_type === "consultation" && consultation.pocus_notes && (
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FileText className="h-5 w-5 text-primary" />

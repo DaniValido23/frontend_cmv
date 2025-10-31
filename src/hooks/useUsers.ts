@@ -4,9 +4,6 @@ import type { User } from "@/types/user";
 import type { Session } from "@/types/session";
 import { toast } from "sonner";
 
-/**
- * Hook para obtener lista de todos los doctores
- */
 export function useDoctors() {
   return useQuery({
     queryKey: ["doctors"],
@@ -17,9 +14,7 @@ export function useDoctors() {
   });
 }
 
-/**
- * Hook para obtener lista de usuarios con filtros opcionales
- */
+
 export function useUsers(page: number = 1, pageSize: number = 10, role?: string) {
   return useQuery({
     queryKey: ["users", page, pageSize, role],
@@ -30,9 +25,6 @@ export function useUsers(page: number = 1, pageSize: number = 10, role?: string)
   });
 }
 
-/**
- * Hook para obtener lista de sesiones activas
- */
 export function useSessions() {
   return useQuery({
     queryKey: ["sessions"],
@@ -43,9 +35,6 @@ export function useSessions() {
   });
 }
 
-/**
- * Hook para revocar una sesión
- */
 export function useRevokeSession() {
   const queryClient = useQueryClient();
 

@@ -61,6 +61,7 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
   const completeMutation = useCompleteConsultation();
   const addVitalsMutation = useAddVitalSigns();
   const addAttachmentMutation = useAddAttachment();
+  const navigator = useNavigate();
 
   const [showVitalsModal, setShowVitalsModal] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
@@ -95,7 +96,7 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
       {
         onSuccess: () => {
           setShowCompleteModal(false);
-          navigate("/consultations");
+          navigator.navigate("/consultations");
         },
       }
     );
@@ -112,7 +113,7 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
     }
   };
 
-  const handleStatusChange = (newStatus: string) => {
+  const handleStatusChange = (newStatus: "pending" | "in_progress" | "completed" | "cancelled") => {
     updateMutation.mutate({
       id: consultationId,
       data: { status: newStatus },
@@ -131,14 +132,16 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
     return (
       <div className="text-center py-12">
         <p className="text-red-600">Consulta no encontrada</p>
-        <Button onClick={() => navigate("/consultations")} className="mt-4">
+        <Button onClick={() => navigator.navigate("/consultations")} className="mt-4">
           Volver a la lista
         </Button>
       </div>
     );
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status?: string) => {
+    if (!status) return <Badge variant="secondary">Sin estado</Badge>;
+
     const statusMap = {
       pending: { variant: "warning" as const, label: "Pendiente" },
       in_progress: { variant: "default" as const, label: "En Progreso" },
@@ -146,7 +149,10 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
       cancelled: { variant: "destructive" as const, label: "Cancelada" },
     };
 
-    const statusInfo = statusMap[status as keyof typeof statusMap];
+    const statusInfo = statusMap[status as keyof typeof statusMap] || {
+      variant: "secondary" as const,
+      label: status,
+    };
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
@@ -237,7 +243,7 @@ export default function ConsultationDetail({ consultationId }: ConsultationDetai
                   <div>
                     <Label className="text-muted-foreground">Género</Label>
                     <p className="font-medium">
-                      {patient?.gender === "male" ? "Masculino" : "Femenino"}
+                      {patient?.gender ?? "N/A"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

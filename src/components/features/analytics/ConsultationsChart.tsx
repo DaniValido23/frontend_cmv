@@ -10,11 +10,12 @@ import {
   Tooltip,
   Legend,
   Filler,
+  type TooltipItem,
 } from "chart.js";
 import { useConsultationsAnalytics } from "@/hooks/useAnalytics";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
-import { type GroupBy, formatLabel, type ChartTooltipContext } from "@/utils/formatters";
+import { type GroupBy, formatLabel } from "@/utils/formatters";
 
 ChartJS.register(
   CategoryScale,
@@ -96,7 +97,7 @@ export default function ConsultationsChart() {
       },
       tooltip: {
         callbacks: {
-          label: function (context: ChartTooltipContext) {
+          label: function (context: TooltipItem<"line">) {
             return `Consultas: ${context.parsed.y}`;
           },
         },

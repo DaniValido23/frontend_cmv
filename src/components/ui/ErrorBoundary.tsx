@@ -1,10 +1,13 @@
-import { Component, ReactNode } from "react";
+import { Component } from "react";
+import type { ReactNode, ErrorInfo } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import Button from "./Button";
+import { logError, parseApiError } from "@/lib/errorHandler";
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -22,9 +25,15 @@ export default class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Aquí podrías enviar el error a un servicio de logging
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const apiError = parseApiError(error);
+    logError(apiError, 'ErrorBoundary');
+
+    this.props.onError?.(error, errorInfo);
+
+    if (import.meta.env.PROD) {
+      // TODO: Send to error tracking service
+    }
   }
 
   handleReset = () => {
