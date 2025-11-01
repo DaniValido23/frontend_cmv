@@ -149,7 +149,7 @@ export default function BloodPressureHistoryChart() {
       htn1Box1: {
         type: 'box',
         xMin: 30,
-        xMax: 135,
+        xMax: 80,
         yMin: 130,
         yMax: 140,
         backgroundColor: 'rgba(249, 115, 22, 0.15)',
@@ -160,15 +160,6 @@ export default function BloodPressureHistoryChart() {
         xMin: 80,
         xMax: 90,
         yMin: 50,
-        yMax: 140,
-        backgroundColor: 'rgba(249, 115, 22, 0.15)',
-        borderWidth: 0,
-      },
-      htn1Box3: {
-        type: 'box',
-        xMin: 90,
-        xMax: 135,
-        yMin: 130,
         yMax: 140,
         backgroundColor: 'rgba(249, 115, 22, 0.15)',
         borderWidth: 0,
@@ -193,15 +184,6 @@ export default function BloodPressureHistoryChart() {
         backgroundColor: 'rgba(239, 68, 68, 0.15)',
         borderWidth: 0,
       },
-      htn2Box3: {
-        type: 'box',
-        xMin: 120,
-        xMax: 135,
-        yMin: 140,
-        yMax: 180,
-        backgroundColor: 'rgba(239, 68, 68, 0.15)',
-        borderWidth: 0,
-      },
 
       // === CRISIS HIPERTENSIVA (rojo oscuro) - Sistólica ≥ 180 O Diastólica ≥ 120 ===
       crisisBox1: {
@@ -218,15 +200,6 @@ export default function BloodPressureHistoryChart() {
         xMin: 120,
         xMax: 135,
         yMin: 50,
-        yMax: 180,
-        backgroundColor: 'rgba(153, 27, 27, 0.15)',
-        borderWidth: 0,
-      },
-      crisisBox3: {
-        type: 'box',
-        xMin: 120,
-        xMax: 135,
-        yMin: 180,
         yMax: 220,
         backgroundColor: 'rgba(153, 27, 27, 0.15)',
         borderWidth: 0,
