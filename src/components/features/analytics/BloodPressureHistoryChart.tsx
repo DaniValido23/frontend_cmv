@@ -43,29 +43,25 @@ export default function BloodPressureHistoryChart() {
   };
 
   const getBPCategory = (systolic: number, diastolic: number) => {
-    // Crisis Hipertensiva
+    // Crisis Hipertensiva - Sistólica ≥180 O Diastólica ≥120
     if (systolic >= 180 || diastolic >= 120) {
       return { name: "Crisis Hipertensiva", color: "rgb(153, 27, 27)" };
     }
-    // Hipertensión Etapa 2
+    // Hipertensión Etapa 2 - Sistólica ≥140 O Diastólica ≥90
     else if (systolic >= 140 || diastolic >= 90) {
       return { name: "Hipertensión Etapa 2", color: "rgb(239, 68, 68)" };
     }
-    // Hipertensión Etapa 1
+    // Hipertensión Etapa 1 - Sistólica 130-139 O Diastólica 80-89
     else if (systolic >= 130 || diastolic >= 80) {
       return { name: "Hipertensión Etapa 1", color: "rgb(249, 115, 22)" };
     }
-    // Presión Arterial Elevada
-    else if (systolic >= 120 && systolic < 130 && diastolic <= 80) {
+    // Presión Arterial Elevada - Sistólica 120-129 Y Diastólica <80
+    else if (systolic >= 120 && systolic < 130 && diastolic < 80) {
       return { name: "Elevada", color: "rgb(234, 179, 8)" };
     }
-    // Normal
-    else if (systolic <= 120 && diastolic <= 80) {
-      return { name: "Normal", color: "rgb(34, 197, 94)" };
-    }
-    // Hipotensión (Presión Baja)
+    // Normal - Sistólica <120 Y Diastólica <80
     else {
-      return { name: "Hipotensión", color: "rgb(59, 130, 246)" };
+      return { name: "Normal", color: "rgb(34, 197, 94)" };
     }
   };
 
@@ -127,17 +123,6 @@ export default function BloodPressureHistoryChart() {
 
   const createAnnotations = () => {
     const annotations: any = {
-      // === CAPA BASE - Hipotensión (azul) - cubre áreas fuera de rangos normales ===
-      hypotensionLeft: {
-        type: 'box',
-        xMin: 30,
-        xMax: 80,
-        yMin: 50,
-        yMax: 120,
-        backgroundColor: 'rgba(59, 130, 246, 0.15)',
-        borderWidth: 0,
-      },
-
       // === ZONA NORMAL (verde) - Sistólica < 120 Y Diastólica < 80 ===
       normalBox: {
         type: 'box',
