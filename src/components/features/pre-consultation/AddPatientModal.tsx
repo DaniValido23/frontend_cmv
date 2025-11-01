@@ -191,10 +191,6 @@ export default function AddPatientModal({
       toast.error("El apellido es requerido");
       return;
     }
-    if (!birthDate) {
-      toast.error("La fecha de nacimiento es requerida");
-      return;
-    }
     if (!gender) {
       toast.error("El género es requerido");
       return;
@@ -204,7 +200,7 @@ export default function AddPatientModal({
     const patientData = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
-      birth_date: formatDateForAPI(birthDate),
+      ...(birthDate && { birth_date: formatDateForAPI(birthDate) }),
       phone: phone.trim(),
       gender: gender as "Masculino" | "Femenino",
       allergies: allergies.trim(),
@@ -314,7 +310,7 @@ export default function AddPatientModal({
             <label className="block text-sm font-medium mb-2">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-primary" />
-                Fecha de Nacimiento <span className="text-destructive">*</span>
+                Fecha de Nacimiento <span className="text-muted-foreground text-xs">(Opcional)</span>
               </div>
             </label>
             <input
@@ -322,7 +318,6 @@ export default function AddPatientModal({
               value={birthDate}
               onChange={(e) => setBirthDate(e.target.value)}
               className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-              required
             />
           </div>
 
