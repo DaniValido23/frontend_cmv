@@ -28,18 +28,16 @@ export function useConsultation(id: string) {
 export function usePatientConsultations(
   patientId: string,
   page: number = 1,
-  pageSize: number = 10,
-  doctorId?: string
+  pageSize: number = 10
 ) {
   return useQuery({
-    queryKey: ["consultations", "patient", patientId, page, pageSize, doctorId],
+    queryKey: ["consultations", "patient", patientId, page, pageSize],
     queryFn: async () => {
       const response = await api.get("/consultations", {
         params: {
           patient_id: patientId,
           page,
           page_size: pageSize,
-          ...(doctorId && { doctor_id: doctorId }),
         },
       });
       return response.data.data as ConsultationsResponse;

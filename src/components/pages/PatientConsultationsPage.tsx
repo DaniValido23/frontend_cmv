@@ -25,13 +25,10 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // Químicos ven TODAS las consultas (sin filtro de doctor)
-  // Doctores solo ven sus propias consultas
   const { data, isLoading: isLoadingConsultations } = usePatientConsultations(
     patientId,
     currentPage,
-    pageSize,
-    isChemistUser ? undefined : user?.id
+    pageSize
   );
   const consultations = data?.consultations || [];
   const meta = data?.meta;
