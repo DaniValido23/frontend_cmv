@@ -25,11 +25,13 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // Químicos ven TODAS las consultas (sin filtro de doctor)
+  // Doctores solo ven sus propias consultas
   const { data, isLoading: isLoadingConsultations } = usePatientConsultations(
     patientId,
     currentPage,
     pageSize,
-    user?.id
+    isChemistUser ? undefined : user?.id
   );
   const consultations = data?.consultations || [];
   const meta = data?.meta;
@@ -328,7 +330,10 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                 No hay consultas registradas
               </p>
               <p className="text-sm text-muted-foreground">
-                Este paciente aún no tiene consultas tuyas en el historial
+                {isChemistUser
+                  ? "Este paciente aún no tiene consultas en el historial"
+                  : "Este paciente aún no tiene consultas tuyas en el historial"
+                }
               </p>
             </div>
           ) : (
@@ -341,6 +346,11 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                   <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Tipo
                   </th>
+                  {isChemistUser && (
+                    <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Doctor
+                    </th>
+                  )}
                   <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Precio
                   </th>
@@ -366,6 +376,16 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
                         {consultation.consultation_type === 'study' ? 'Estudio' : 'Consulta'}
                       </span>
                     </td>
+                    {isChemistUser && (
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">
+                            {consultation.doctor?.name || 'N/A'}
+                          </span>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <span className="text-sm font-semibold text-green-600">
                         ${consultation.price.toFixed(2)}
