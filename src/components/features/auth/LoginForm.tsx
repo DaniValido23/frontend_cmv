@@ -130,7 +130,7 @@ export default function LoginForm() {
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-6">
             <img
-              src="/assets/logo_icon.png"
+              src="/logo_icon.png"
               alt="Logo"
               className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain"
             />
