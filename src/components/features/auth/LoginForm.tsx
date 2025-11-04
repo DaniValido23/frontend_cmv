@@ -128,10 +128,16 @@ export default function LoginForm() {
     <>
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle>Iniciar sesión</CardTitle>
-          <CardDescription>
-            Ingresa tus credenciales para acceder al sistema
-          </CardDescription>
+          <div className="flex justify-center mb-6">
+            <img
+              src="/assets/logo_icon.png"
+              alt="Logo"
+              className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain"
+            />
+          </div>
+          <h1 className="text-center text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+            Centro Medico Del Valle
+          </h1>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
