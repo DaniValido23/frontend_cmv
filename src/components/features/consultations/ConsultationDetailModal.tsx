@@ -143,8 +143,8 @@ export default function ConsultationDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <div className="flex items-center gap-3">
             <DialogTitle>Detalle de Consulta</DialogTitle>
             {consultation.consultation_type === "consultation" ? (
@@ -161,7 +161,8 @@ export default function ConsultationDetailModal({
           </div>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="flex-1 overflow-y-auto px-1">
+          <div className="space-y-6 py-4">
           {/* Pre-consulta */}
           {consultation.consultation_type === "consultation" && consultation.vital_signs && (
             <div className="p-4 rounded-lg border">
@@ -528,6 +529,7 @@ export default function ConsultationDetailModal({
               )}
             </div>
           </div>
+        </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -257,8 +257,8 @@ export default function AddPatientModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{isEditing ? "Actualizar Paciente" : "Agregar Nuevo Paciente"}</DialogTitle>
           {!isEditing && (
             <DialogDescription>
@@ -267,7 +267,8 @@ export default function AddPatientModal({
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <div className="flex-1 overflow-y-auto px-1">
+          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {/* Nombre y Apellido */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -463,32 +464,33 @@ export default function AddPatientModal({
           </div>
 
           {/* Buttons */}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              disabled={createPatientMutation.isPending || updatePatientMutation.isPending}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={
-                createPatientMutation.isPending ||
-                updatePatientMutation.isPending ||
-                (isEditing && !hasDataChanged())
-              }
-            >
-              {(createPatientMutation.isPending || updatePatientMutation.isPending)
-                ? "Guardando..."
-                : isEditing
-                ? "Actualizar Paciente"
-                : "Guardar Paciente"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                disabled={createPatientMutation.isPending || updatePatientMutation.isPending}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                disabled={
+                  createPatientMutation.isPending ||
+                  updatePatientMutation.isPending ||
+                  (isEditing && !hasDataChanged())
+                }
+              >
+                {(createPatientMutation.isPending || updatePatientMutation.isPending)
+                  ? "Guardando..."
+                  : isEditing
+                  ? "Actualizar Paciente"
+                  : "Guardar Paciente"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
