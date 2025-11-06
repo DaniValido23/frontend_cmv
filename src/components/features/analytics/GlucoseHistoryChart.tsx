@@ -30,8 +30,8 @@ ChartJS.register(
 
 export default function GlucoseHistoryChart() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const { token } = useAuthStore();
-  const { data: patients, isLoading: loadingPatients } = useDoctorPatients(token);
+  const { user } = useAuthStore();
+  const { data: patients, isLoading: loadingPatients } = useDoctorPatients(user?.id);
   const { data: glucoseHistory, isLoading: loadingHistory } = useGlucoseHistory(selectedPatientId);
 
   const handlePatientChange = (value: string) => {

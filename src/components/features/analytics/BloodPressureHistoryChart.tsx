@@ -34,8 +34,8 @@ ChartJS.register(
 export default function BloodPressureHistoryChart() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedDateIndex, setSelectedDateIndex] = useState<number>(0);
-  const { token } = useAuthStore();
-  const { data: patients, isLoading: loadingPatients } = useDoctorPatients(token);
+  const { user } = useAuthStore();
+  const { data: patients, isLoading: loadingPatients } = useDoctorPatients(user?.id);
   const { data: bpHistory, isLoading: loadingHistory } = useBloodPressureHistory(selectedPatientId);
 
   const handlePatientChange = (value: string) => {

@@ -345,17 +345,17 @@ export function useGenderStats() {
 }
 
 // Hook específico para obtener pacientes del doctor en la pantalla de estadísticas
-export function useDoctorPatients(doctorToken: string | null) {
+export function useDoctorPatients(doctorId: string | null | undefined) {
   return useQuery({
-    queryKey: ["patients", "by-doctor", doctorToken],
+    queryKey: ["patients", "by-doctor", doctorId],
     queryFn: async () => {
-      if (!doctorToken) return [];
+      if (!doctorId) return [];
       const response = await api.get("/patients", {
-        params: { token: doctorToken },
+        params: { doctor_id: doctorId },
       });
       return response.data.data.patients as Patient[];
     },
-    enabled: !!doctorToken,
+    enabled: !!doctorId,
     staleTime: QUERY_STALE_TIME.SHORT,
   });
 }
