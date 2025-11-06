@@ -68,35 +68,33 @@ export function useCreatePatient() {
 
   return useMutation({
     mutationFn: async (data: Partial<Patient>) => {
-      console.log("=== CREATING PATIENT - REQUEST DATA ===");
-      console.log("Data being sent to backend:", JSON.stringify(data, null, 2));
-
-      try {
-        const response = await api.post("/patients", data);
-        console.log("=== CREATING PATIENT - RESPONSE SUCCESS ===");
-        console.log("Response data:", JSON.stringify(response.data, null, 2));
-        return response.data;
-      } catch (error: any) {
-        console.error("=== CREATING PATIENT - ERROR ===");
-        console.error("Full error object:", error);
-        console.error("Error response:", error.response);
-        console.error("Error response data:", JSON.stringify(error.response?.data, null, 2));
-        console.error("Error response status:", error.response?.status);
-        console.error("Error response headers:", error.response?.headers);
-        throw error;
-      }
+      const response = await api.post("/patients", data);
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       toast.success("Paciente creado exitosamente");
     },
     onError: (error: any) => {
-      console.error("=== CREATING PATIENT - onError HANDLER ===");
-      console.error("Error in onError:", error);
-      console.error("Error message:", error.response?.data?.error?.message);
-      toast.error(
-        error.response?.data?.error?.message || "Error al crear paciente"
-      );
+      // Mostrar mensaje del backend o error genérico
+      const backendMessage = error.response?.data?.message;
+      const backendErrors = error.response?.data?.error;
+
+      let errorMessage = "Error al crear paciente";
+
+      if (backendMessage) {
+        errorMessage = backendMessage;
+
+        // Si hay errores de validación específicos, agregarlos
+        if (backendErrors && typeof backendErrors === 'object') {
+          const errorDetails = Object.entries(backendErrors)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(', ');
+          errorMessage = `${backendMessage} - ${errorDetails}`;
+        }
+      }
+
+      toast.error(errorMessage);
     },
   });
 }
@@ -121,9 +119,25 @@ export function useUpdatePatient() {
       toast.success("Paciente actualizado exitosamente"); 
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.error?.message || "Error al actualizar paciente"
-      );
+      // Mostrar mensaje del backend o error genérico
+      const backendMessage = error.response?.data?.message;
+      const backendErrors = error.response?.data?.error;
+
+      let errorMessage = "Error al actualizar paciente";
+
+      if (backendMessage) {
+        errorMessage = backendMessage;
+
+        // Si hay errores de validación específicos, agregarlos
+        if (backendErrors && typeof backendErrors === 'object') {
+          const errorDetails = Object.entries(backendErrors)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(', ');
+          errorMessage = `${backendMessage} - ${errorDetails}`;
+        }
+      }
+
+      toast.error(errorMessage);
     },
   });
 }
@@ -140,9 +154,25 @@ export function useDeletePatient() {
       toast.success("Paciente eliminado exitosamente");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.error?.message || "Error al eliminar paciente"
-      );
+      // Mostrar mensaje del backend o error genérico
+      const backendMessage = error.response?.data?.message;
+      const backendErrors = error.response?.data?.error;
+
+      let errorMessage = "Error al eliminar paciente";
+
+      if (backendMessage) {
+        errorMessage = backendMessage;
+
+        // Si hay errores de validación específicos, agregarlos
+        if (backendErrors && typeof backendErrors === 'object') {
+          const errorDetails = Object.entries(backendErrors)
+            .map(([field, msg]) => `${field}: ${msg}`)
+            .join(', ');
+          errorMessage = `${backendMessage} - ${errorDetails}`;
+        }
+      }
+
+      toast.error(errorMessage);
     },
   });
 }

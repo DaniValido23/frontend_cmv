@@ -182,21 +182,6 @@ export default function AddPatientModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log("=== FORM SUBMIT STARTED ===");
-    console.log("Form values:", {
-      firstName,
-      lastName,
-      birthDate,
-      phone,
-      gender,
-      allergies,
-      religion,
-      occupation,
-      nativeOf,
-      personalBackground,
-      obstetricGynecologicalBackground
-    });
-
     // Validaciones
     if (!firstName.trim()) {
       toast.error("El nombre es requerido");
@@ -226,9 +211,6 @@ export default function AddPatientModal({
       ...(occupation.trim() && { occupation: occupation.trim() }),
       ...(nativeOf.trim() && { native_of: nativeOf.trim() }),
     };
-
-    console.log("=== PATIENT DATA PREPARED ===");
-    console.log("Patient data object:", JSON.stringify(patientData, null, 2));
 
     if (isEditing && initialPatient) {
       // Actualizar paciente existente
@@ -287,7 +269,7 @@ export default function AddPatientModal({
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-1">
-          <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          <form onSubmit={handleSubmit} onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()} className="space-y-4 mt-4">
           {/* Nombre y Apellido */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
