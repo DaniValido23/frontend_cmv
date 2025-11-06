@@ -182,6 +182,21 @@ export default function AddPatientModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log("=== FORM SUBMIT STARTED ===");
+    console.log("Form values:", {
+      firstName,
+      lastName,
+      birthDate,
+      phone,
+      gender,
+      allergies,
+      religion,
+      occupation,
+      nativeOf,
+      personalBackground,
+      obstetricGynecologicalBackground
+    });
+
     // Validaciones
     if (!firstName.trim()) {
       toast.error("El nombre es requerido");
@@ -210,6 +225,9 @@ export default function AddPatientModal({
       occupation: occupation.trim(),
       native_of: nativeOf.trim(),
     };
+
+    console.log("=== PATIENT DATA PREPARED ===");
+    console.log("Patient data object:", JSON.stringify(patientData, null, 2));
 
     if (isEditing && initialPatient) {
       // Actualizar paciente existente

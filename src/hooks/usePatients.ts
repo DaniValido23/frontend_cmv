@@ -68,14 +68,32 @@ export function useCreatePatient() {
 
   return useMutation({
     mutationFn: async (data: Partial<Patient>) => {
-      const response = await api.post("/patients", data);
-      return response.data;
+      console.log("=== CREATING PATIENT - REQUEST DATA ===");
+      console.log("Data being sent to backend:", JSON.stringify(data, null, 2));
+
+      try {
+        const response = await api.post("/patients", data);
+        console.log("=== CREATING PATIENT - RESPONSE SUCCESS ===");
+        console.log("Response data:", JSON.stringify(response.data, null, 2));
+        return response.data;
+      } catch (error: any) {
+        console.error("=== CREATING PATIENT - ERROR ===");
+        console.error("Full error object:", error);
+        console.error("Error response:", error.response);
+        console.error("Error response data:", JSON.stringify(error.response?.data, null, 2));
+        console.error("Error response status:", error.response?.status);
+        console.error("Error response headers:", error.response?.headers);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       toast.success("Paciente creado exitosamente");
     },
     onError: (error: any) => {
+      console.error("=== CREATING PATIENT - onError HANDLER ===");
+      console.error("Error in onError:", error);
+      console.error("Error message:", error.response?.data?.error?.message);
       toast.error(
         error.response?.data?.error?.message || "Error al crear paciente"
       );
