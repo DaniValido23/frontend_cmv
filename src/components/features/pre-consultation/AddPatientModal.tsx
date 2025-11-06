@@ -211,19 +211,20 @@ export default function AddPatientModal({
       return;
     }
 
-    // Preparar datos para la API - Enviar todos los campos según el schema del backend
+    // Preparar datos para la API - Solo enviar campos con valores
     const patientData = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
-      ...(birthDate && { birth_date: formatDateForAPI(birthDate) }),
-      phone: phone.trim(),
       gender: gender as "Masculino" | "Femenino",
-      allergies: allergies.trim(),
-      personal_background: personalBackground.trim(),
-      obstetric_gynecological_background: obstetricGynecologicalBackground.trim(),
-      religion: religion.trim(),
-      occupation: occupation.trim(),
-      native_of: nativeOf.trim(),
+      // Solo incluir campos opcionales si tienen valores
+      ...(birthDate && { birth_date: formatDateForAPI(birthDate) }),
+      ...(phone.trim() && { phone: phone.trim() }),
+      ...(allergies.trim() && { allergies: allergies.trim() }),
+      ...(personalBackground.trim() && { personal_background: personalBackground.trim() }),
+      ...(obstetricGynecologicalBackground.trim() && { obstetric_gynecological_background: obstetricGynecologicalBackground.trim() }),
+      ...(religion.trim() && { religion: religion.trim() }),
+      ...(occupation.trim() && { occupation: occupation.trim() }),
+      ...(nativeOf.trim() && { native_of: nativeOf.trim() }),
     };
 
     console.log("=== PATIENT DATA PREPARED ===");
