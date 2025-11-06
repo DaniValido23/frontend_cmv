@@ -2,10 +2,10 @@ import { memo } from "react";
 import { User, Stethoscope, Microscope } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import type { Patient, RecordType } from "@/types/models";
+import type { ConsultationPatient, RecordType } from "@/types/models";
 
 interface PatientInfoSectionProps {
-  patient: Patient;
+  patient: ConsultationPatient;
   recordType?: RecordType;
 }
 

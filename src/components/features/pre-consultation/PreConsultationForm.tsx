@@ -77,74 +77,6 @@ export default function PreConsultationForm() {
     // No es necesario setear selectedPatient porque usePatient(id) lo cargará automáticamente
   };
 
-  // Formateo automático para temperatura (XX.X)
-  const handleTwoDigitDecimalInput = (
-    value: string,
-    setter: (value: string) => void
-  ) => {
-    // Remover cualquier cosa que no sea número
-    const cleaned = value.replace(/[^\d]/g, '');
-
-    if (cleaned.length === 0) {
-      setter('');
-      return;
-    }
-
-    // Limitar a 3 dígitos (XX.X)
-    const limited = cleaned.slice(0, 3);
-
-    // Formatear con punto decimal automático
-    if (limited.length <= 2) {
-      setter(limited);
-    } else {
-      // Insertar punto después de 2 dígitos: XX.X
-      setter(`${limited.slice(0, 2)}.${limited.slice(2)}`);
-    }
-  };
-
-  // Formateo automático para peso (XXX.X)
-  const handleWeightInput = (value: string) => {
-    // Remover cualquier cosa que no sea número
-    const cleaned = value.replace(/[^\d]/g, '');
-
-    if (cleaned.length === 0) {
-      setWeight('');
-      return;
-    }
-
-    // Limitar a 4 dígitos (XXX.X)
-    const limited = cleaned.slice(0, 4);
-
-    // Formatear con punto decimal automático
-    if (limited.length <= 3) {
-      setWeight(limited);
-    } else {
-      // Insertar punto después de 3 dígitos: XXX.X
-      setWeight(`${limited.slice(0, 3)}.${limited.slice(3)}`);
-    }
-  };
-
-  // Formateo automático para altura (X.XX)
-  const handleHeightInput = (value: string) => {
-    // Remover cualquier cosa que no sea número
-    const cleaned = value.replace(/[^\d]/g, '');
-
-    if (cleaned.length === 0) {
-      setHeight('');
-      return;
-    }
-
-    // Limitar a 3 dígitos (X.XX)
-    const limited = cleaned.slice(0, 3);
-
-    // Formatear con punto decimal automático
-    if (limited.length === 1) {
-      setHeight(limited);
-    } else {
-      // Insertar punto después de 1 dígito: X.XX
-      setHeight(`${limited.slice(0, 1)}.${limited.slice(1)}`);
-    }
-  };
 
   const validateVitalSigns = () => {
     const errors: string[] = [];
@@ -480,10 +412,10 @@ export default function PreConsultationForm() {
                   </div>
                 </label>
                 <input
-                  type="text"
-                  inputMode="decimal"
+                  type="number"
+                  step="0.1"
                   value={temperature}
-                  onChange={(e) => handleTwoDigitDecimalInput(e.target.value, setTemperature)}
+                  onChange={(e) => setTemperature(e.target.value)}
                   placeholder="37.5"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -602,10 +534,10 @@ export default function PreConsultationForm() {
                   </div>
                 </label>
                 <input
-                  type="text"
-                  inputMode="decimal"
+                  type="number"
+                  step="0.1"
                   value={weight}
-                  onChange={(e) => handleWeightInput(e.target.value)}
+                  onChange={(e) => setWeight(e.target.value)}
                   placeholder="70.5"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />
@@ -620,10 +552,10 @@ export default function PreConsultationForm() {
                   </div>
                 </label>
                 <input
-                  type="text"
-                  inputMode="decimal"
+                  type="number"
+                  step="0.01"
                   value={height}
-                  onChange={(e) => handleHeightInput(e.target.value)}
+                  onChange={(e) => setHeight(e.target.value)}
                   placeholder="1.75"
                   className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
                 />

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { QUERY_STALE_TIME } from "@/lib/queryClient";
+import type { Patient } from "@/types/models";
 
 interface DashboardStats {
   consultations_today: number;
@@ -340,5 +341,21 @@ export function useGenderStats() {
       return response.data.data as GenderStatsResponse;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
+  });
+}
+
+// Hook específico para obtener pacientes del doctor en la pantalla de estadísticas
+export function useDoctorPatients(doctorToken: string | null) {
+  return useQuery({
+    queryKey: ["patients", "by-doctor", doctorToken],
+    queryFn: async () => {
+      if (!doctorToken) return [];
+      const response = await api.get("/patients", {
+        params: { token: doctorToken },
+      });
+      return response.data.data.patients as Patient[];
+    },
+    enabled: !!doctorToken,
+    staleTime: QUERY_STALE_TIME.SHORT,
   });
 }

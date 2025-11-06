@@ -233,6 +233,10 @@ export interface ActiveConsultationEntry {
   };
 }
 
+// Type aliases for consultation components that use ActiveConsultationEntry data
+export type ConsultationPatient = ActiveConsultationEntry["patient"];
+export type ConsultationPreConsultation = NonNullable<ActiveConsultationEntry["pre_consultation"]>;
+
 export interface Attachment {
   id: string;
   consultation_id: string;

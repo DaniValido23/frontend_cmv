@@ -71,6 +71,7 @@ export default function ConsultationForm() {
   });
   const [recommendations, setRecommendations] = useState("");
   const [pocusNotes, setPocusNotes] = useState("");
+  const [appointment, setAppointment] = useState("");
   const [price, setPrice] = useState("");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
@@ -302,6 +303,7 @@ export default function ConsultationForm() {
           medications: medications,
           recommendations: recommendations.trim() || undefined,
           pocus_notes: pocusNotes.trim() || undefined,
+          appointment: appointment.trim() || undefined,
           price: parseFloat(price),
         };
 
@@ -514,6 +516,20 @@ export default function ConsultationForm() {
                   />
                 </div>
               )}
+
+              {/* Cita */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Cita (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={appointment}
+                  onChange={(e) => setAppointment(e.target.value)}
+                  placeholder="Ej: 15 de enero 2025, Próxima semana..."
+                  className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
             </>
           )}
 

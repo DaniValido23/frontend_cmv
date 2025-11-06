@@ -11,12 +11,12 @@ import {
   Legend,
   type TooltipItem,
 } from "chart.js";
-import { usePatientWeightHistory } from "@/hooks/useAnalytics";
-import { useAllPatients } from "@/hooks/usePatients";
+import { usePatientWeightHistory, useDoctorPatients } from "@/hooks/useAnalytics";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select";
 import { formatDateLabel } from "@/utils/formatters";
+import { useAuthStore } from "@/stores/authStore";
 
 ChartJS.register(
   CategoryScale,
@@ -30,7 +30,8 @@ ChartJS.register(
 
 export default function WeightEvolutionChart() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
-  const { data: patients, isLoading: loadingPatients } = useAllPatients();
+  const { token } = useAuthStore();
+  const { data: patients, isLoading: loadingPatients } = useDoctorPatients(token);
   const { data: weightHistory, isLoading: loadingHistory } = usePatientWeightHistory(selectedPatientId);
 
   const handlePatientChange = (value: string) => {

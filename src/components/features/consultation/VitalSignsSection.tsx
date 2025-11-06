@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Heart, Thermometer, Activity, Weight, Ruler, Droplet, Wind, Stethoscope, Microscope, Clock } from "lucide-react";
 import Card from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
-import type { PreConsultation, RecordType } from "@/types/models";
+import type { ConsultationPreConsultation, RecordType } from "@/types/models";
 
 interface VitalSignsState {
   temperature: string;
@@ -17,8 +17,8 @@ interface VitalSignsState {
 }
 
 interface VitalSignsSectionProps {
-  preConsultation?: PreConsultation;
-  recordType?: RecordType; // Nuevo: tipo de registro
+  preConsultation?: ConsultationPreConsultation;
+  recordType?: RecordType;
   vitals: VitalSignsState;
   currentMedications: string;
   onVitalsChange: (vitals: VitalSignsState) => void;

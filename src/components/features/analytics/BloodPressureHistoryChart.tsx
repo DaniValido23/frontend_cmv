@@ -13,12 +13,12 @@ import {
   type ChartOptions,
 } from "chart.js";
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { useBloodPressureHistory } from "@/hooks/useAnalytics";
-import { useAllPatients } from "@/hooks/usePatients";
+import { useBloodPressureHistory, useDoctorPatients } from "@/hooks/useAnalytics";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select";
 import { formatDateLabel } from "@/utils/formatters";
+import { useAuthStore } from "@/stores/authStore";
 
 ChartJS.register(
   CategoryScale,
@@ -34,7 +34,8 @@ ChartJS.register(
 export default function BloodPressureHistoryChart() {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedDateIndex, setSelectedDateIndex] = useState<number>(0);
-  const { data: patients, isLoading: loadingPatients } = useAllPatients();
+  const { token } = useAuthStore();
+  const { data: patients, isLoading: loadingPatients } = useDoctorPatients(token);
   const { data: bpHistory, isLoading: loadingHistory } = useBloodPressureHistory(selectedPatientId);
 
   const handlePatientChange = (value: string) => {
