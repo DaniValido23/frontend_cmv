@@ -39,7 +39,7 @@ export function canAccessRoute(user: User | null, route: string): boolean {
   }
 
   if (route.startsWith("/patients") || route.includes("/consultations")) {
-    return isDoctor(user) || isChemist(user);
+    return isDoctor(user) || isChemist(user) || isAssistant(user);
   }
 
   const assistantRoutes = ["/waiting-room", "/pre-consultation"];

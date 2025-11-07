@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { navigateTo } from "@/hooks/useNavigate";
 import { usePatientConsultations } from "@/hooks/useConsultations";
 import { usePatient } from "@/hooks/usePatients";
-import { isChemist } from "@/lib/auth";
+import { isChemist, isAssistant } from "@/lib/auth";
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
@@ -21,14 +21,17 @@ interface PatientConsultationsContentProps {
 function PatientConsultationsContent({ patientId }: PatientConsultationsContentProps) {
   const user = useAuthStore((state) => state.user);
   const isChemistUser = isChemist(user);
+  const isAssistantUser = isAssistant(user);
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
+  // Solo cargar consultas si NO es asistente
   const { data, isLoading: isLoadingConsultations } = usePatientConsultations(
     patientId,
     currentPage,
-    pageSize
+    pageSize,
+    !isAssistantUser // enabled: solo si NO es asistente
   );
   const consultations = data?.consultations || [];
   const meta = data?.meta;
@@ -306,123 +309,126 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
         </div>
       </Card>
 
-      <Card>
-        <div className="p-6 border-b">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold">Historial de Consultas</h2>
-            <span className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-              {meta?.total_items || 0}
-            </span>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          {consultations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <FileText className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <p className="text-lg font-medium text-foreground mb-2">
-                No hay consultas registradas
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {isChemistUser
-                  ? "Este paciente aún no tiene consultas en el historial"
-                  : "Este paciente aún no tiene consultas tuyas en el historial"
-                }
-              </p>
+      {/* Historial de Consultas - oculto para asistentes */}
+      {!isAssistantUser && (
+        <Card>
+          <div className="p-6 border-b">
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <h2 className="text-lg font-semibold">Historial de Consultas</h2>
+              <span className="ml-2 px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
+                {meta?.total_items || 0}
+              </span>
             </div>
-          ) : (
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Fecha
-                  </th>
-                  <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Tipo
-                  </th>
-                  {isChemistUser && (
+          </div>
+
+          <div className="overflow-x-auto">
+            {consultations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <FileText className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <p className="text-lg font-medium text-foreground mb-2">
+                  No hay consultas registradas
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {isChemistUser
+                    ? "Este paciente aún no tiene consultas en el historial"
+                    : "Este paciente aún no tiene consultas tuyas en el historial"
+                  }
+                </p>
+              </div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-muted/50">
+                  <tr>
                     <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                      Doctor
+                      Fecha
                     </th>
-                  )}
-                  <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Precio
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {consultations.map((consultation) => (
-                  <tr
-                    key={consultation.id}
-                    onClick={() => handleConsultationClick(consultation)}
-                    className="hover:bg-muted/50 cursor-pointer transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          {formatDate(consultation.consultation_date)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="text-sm font-medium text-foreground">
-                        {consultation.consultation_type === 'study' ? 'Estudio' : 'Consulta'}
-                      </span>
-                    </td>
+                    <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Tipo
+                    </th>
                     {isChemistUser && (
+                      <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Doctor
+                      </th>
+                    )}
+                    <th className="text-center px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      Precio
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {consultations.map((consultation) => (
+                    <tr
+                      key={consultation.id}
+                      onClick={() => handleConsultationClick(consultation)}
+                      className="hover:bg-muted/50 cursor-pointer transition-colors"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium text-foreground">
-                            {consultation.doctor?.name || 'N/A'}
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">
+                            {formatDate(consultation.consultation_date)}
                           </span>
                         </div>
                       </td>
-                    )}
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <span className="text-sm font-semibold text-green-600">
-                        ${consultation.price.toFixed(2)}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        {meta && meta.total_pages > 1 && (
-          <div className="p-6 border-t flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Página {meta.page} de {meta.total_pages}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={!meta.has_previous}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" />
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={!meta.has_next}
-              >
-                Siguiente
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className="text-sm font-medium text-foreground">
+                          {consultation.consultation_type === 'study' ? 'Estudio' : 'Consulta'}
+                        </span>
+                      </td>
+                      {isChemistUser && (
+                        <td className="px-6 py-4 whitespace-nowrap text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-foreground">
+                              {consultation.doctor?.name || 'N/A'}
+                            </span>
+                          </div>
+                        </td>
+                      )}
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className="text-sm font-semibold text-green-600">
+                          ${consultation.price.toFixed(2)}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
-        )}
-      </Card>
+
+          {meta && meta.total_pages > 1 && (
+            <div className="p-6 border-t flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Página {meta.page} de {meta.total_pages}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={!meta.has_previous}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Anterior
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={!meta.has_next}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       <ConsultationDetailModal
         open={showModal}
@@ -464,12 +470,12 @@ export default function PatientConsultationsPage({ patientId }: PatientConsultat
       return;
     }
 
-    if (user?.role !== "doctor" && user?.role !== "chemist") {
+    if (user?.role !== "doctor" && user?.role !== "chemist" && user?.role !== "assistant") {
       navigateTo("/waiting-room");
     }
   }, [isLoading, isAuthenticated, user]);
 
-  if (isLoading || !isAuthenticated || (user?.role !== "doctor" && user?.role !== "chemist")) {
+  if (isLoading || !isAuthenticated || (user?.role !== "doctor" && user?.role !== "chemist" && user?.role !== "assistant")) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />

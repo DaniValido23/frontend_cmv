@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
   { name: "Sala de Espera", href: "/waiting-room", icon: Clock, roles: ['doctor', 'assistant'] },
   { name: "Pre-Consulta", href: "/pre-consultation", icon: ClipboardList, roles: ['doctor', 'assistant'] },
   { name: "Consulta", href: "/consultation", icon: FileText, roles: ['doctor'] },
-  { name: "Pacientes", href: "/patients", icon: Users, roles: ['doctor', 'chemist'] },
+  { name: "Pacientes", href: "/patients", icon: Users, roles: ['doctor', 'chemist', 'assistant'] },
   { name: "Estadísticas", href: "/analytics", icon: BarChart3, roles: ['doctor'] },
   { name: "Usuarios", href: "/users", icon: User, roles: ['doctor'] },
 ];

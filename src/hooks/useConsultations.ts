@@ -28,7 +28,8 @@ export function useConsultation(id: string) {
 export function usePatientConsultations(
   patientId: string,
   page: number = 1,
-  pageSize: number = 10
+  pageSize: number = 10,
+  enabled: boolean = true
 ) {
   return useQuery({
     queryKey: ["consultations", "patient", patientId, page, pageSize],
@@ -42,7 +43,7 @@ export function usePatientConsultations(
       });
       return response.data.data as ConsultationsResponse;
     },
-    enabled: !!patientId,
+    enabled: !!patientId && enabled,
   });
 }
 
