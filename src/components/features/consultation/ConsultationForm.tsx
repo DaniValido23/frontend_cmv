@@ -319,8 +319,8 @@ export default function ConsultationForm() {
           return;
         }
 
-        // Subir archivos adjuntos (si hay y no es estudio)
-        if (attachedFiles.length > 0 && recordType !== "study") {
+        // Subir archivos adjuntos (si hay)
+        if (attachedFiles.length > 0) {
           await uploadAttachments(consultationId);
         }
 
@@ -534,7 +534,7 @@ export default function ConsultationForm() {
           )}
 
           {/* Precio y Archivos Adjuntos */}
-          <div className={`grid grid-cols-1 ${isStudy ? '' : 'md:grid-cols-2'} gap-6`}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Precio */}
             <div>
               <label className="block text-sm font-medium mb-2">
@@ -553,13 +553,11 @@ export default function ConsultationForm() {
               </div>
             </div>
 
-            {/* Archivos Adjuntos - solo para consultas médicas */}
-            {!isStudy && (
-              <AttachmentsSection
-                files={attachedFiles}
-                onFilesChange={setAttachedFiles}
-              />
-            )}
+            {/* Archivos Adjuntos */}
+            <AttachmentsSection
+              files={attachedFiles}
+              onFilesChange={setAttachedFiles}
+            />
           </div>
 
           {/* Botones de acción */}
