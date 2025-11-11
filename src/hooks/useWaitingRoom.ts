@@ -106,6 +106,7 @@ export function useChangeWaitingRoomStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
+      queryClient.invalidateQueries({ queryKey: ["in-progress-consultations"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
     onError: (error: unknown) => {
@@ -121,6 +122,20 @@ export function useActiveConsultation() {
       const response = await api.get("/waiting-room/active");
 
       return (response.data.data as ActiveConsultationEntry) || null;
+    },
+    staleTime: QUERY_STALE_TIME.REALTIME, // 30 seconds - changes frequently
+    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refetch when returning for latest consultation state
+  });
+}
+
+export function useInProgressConsultations() {
+  return useQuery<ActiveConsultationEntry[]>({
+    queryKey: ["in-progress-consultations"],
+    queryFn: async () => {
+      const response = await api.get("/waiting-room/in-consultation");
+
+      return (response.data.data as ActiveConsultationEntry[]) || [];
     },
     staleTime: QUERY_STALE_TIME.REALTIME, // 30 seconds - changes frequently
     refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
