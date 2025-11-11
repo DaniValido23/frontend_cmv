@@ -106,6 +106,7 @@ export function useChangeWaitingRoomStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
       queryClient.invalidateQueries({ queryKey: ["active-consultation"] });
+      queryClient.invalidateQueries({ queryKey: ["in-progress-consultations"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
     },
     onError: (error: unknown) => {
