@@ -127,3 +127,17 @@ export function useActiveConsultation() {
     refetchOnWindowFocus: true, // Refetch when returning for latest consultation state
   });
 }
+
+export function useInProgressConsultations() {
+  return useQuery<ActiveConsultationEntry[]>({
+    queryKey: ["in-progress-consultations"],
+    queryFn: async () => {
+      const response = await api.get("/waiting-room/in-consultation");
+
+      return (response.data.data as ActiveConsultationEntry[]) || [];
+    },
+    staleTime: QUERY_STALE_TIME.REALTIME, // 30 seconds - changes frequently
+    refetchInterval: 30 * 1000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refetch when returning for latest consultation state
+  });
+}

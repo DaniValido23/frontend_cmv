@@ -168,23 +168,31 @@ export function AppointmentModal({
               <User className="mr-2 inline h-4 w-4" />
               Paciente *
             </Label>
-            <Select
-              value={patientId}
-              onValueChange={setPatientId}
-              disabled={isEditing}
-              required
-            >
-              <SelectTrigger id="patient">
-                <SelectValue placeholder="Selecciona un paciente" />
-              </SelectTrigger>
-              <SelectContent>
-                {patientsData?.patients.map((patient) => (
-                  <SelectItem key={patient.id} value={patient.id}>
-                    {patient.full_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isEditing && appointment ? (
+              <Input
+                id="patient"
+                value={appointment.patient?.full_name || "N/A"}
+                disabled
+                className="bg-muted"
+              />
+            ) : (
+              <Select
+                value={patientId}
+                onValueChange={setPatientId}
+                required
+              >
+                <SelectTrigger id="patient">
+                  <SelectValue placeholder="Selecciona un paciente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {patientsData?.patients.map((patient) => (
+                    <SelectItem key={patient.id} value={patient.id}>
+                      {patient.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Doctor Selection (if user is not a doctor) */}

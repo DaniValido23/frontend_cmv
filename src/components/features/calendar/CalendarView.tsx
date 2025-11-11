@@ -94,7 +94,20 @@ export function CalendarView({ onSelectEvent, onSelectSlot }: CalendarViewProps)
   }, [appointmentsData]);
 
   // Event style getter - color code by date (past vs future)
+  // Don't apply background colors in agenda view
   const eventStyleGetter = useCallback((event: CalendarEvent) => {
+    // In agenda view, return minimal styling
+    if (view === "agenda") {
+      return {
+        style: {
+          backgroundColor: "transparent",
+          color: "inherit",
+          border: "none",
+        },
+      };
+    }
+
+    // For other views (month, week, day), apply color coding
     const now = new Date();
     const isPast = event.start < now;
 
@@ -112,7 +125,7 @@ export function CalendarView({ onSelectEvent, onSelectSlot }: CalendarViewProps)
         fontSize: "0.875rem",
       },
     };
-  }, []);
+  }, [view]);
 
   const handleNavigate = (newDate: Date) => {
     setCurrentDate(newDate);
