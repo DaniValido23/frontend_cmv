@@ -47,13 +47,16 @@ export default function WaitingRoomBoard() {
 
   // Memoize helper function for parsing arrival time
   const parseArrivalTime = useCallback((arrivalTime: string): Date => {
+    console.log('🔍 DEBUG - arrivalTime raw:', arrivalTime);
     if (arrivalTime.includes('-') && arrivalTime.split('-')[0].length <= 2) {
       const [datePart, timePart] = arrivalTime.split(' ');
       const [day, month, year] = datePart.split('-');
       const isoDate = `${year}-${month}-${day}T${timePart || '00:00:00'}`;
       return new Date(isoDate);
     }
-    return new Date(arrivalTime);
+    const parsed = new Date(arrivalTime);
+    console.log('🔍 DEBUG - parsed date:', parsed, 'current time:', new Date());
+    return parsed;
   }, []);
 
   // Memoize waiting minutes calculation
