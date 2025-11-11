@@ -1,0 +1,402 @@
+/* React Big Calendar Custom Styles */
+/* Fix para que se vean las fechas en la vista de mes con Tailwind CSS */
+
+.rbc-calendar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.rbc-calendar * {
+  box-sizing: border-box;
+}
+
+/* Header del calendario */
+.rbc-header {
+  padding: 10px 3px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-align: center;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  color: #374151;
+}
+
+/* Toolbar (navegación superior) */
+.rbc-toolbar {
+  display: none !important; /* Ocultamos el toolbar por defecto porque usamos uno custom */
+}
+
+/* Grid del mes */
+.rbc-month-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.rbc-month-header {
+  display: flex;
+  flex-direction: row;
+}
+
+.rbc-month-row {
+  display: flex;
+  position: relative;
+  flex: 1 1 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-top: 1px solid #e5e7eb;
+}
+
+.rbc-month-row:first-child {
+  border-top: none;
+}
+
+.rbc-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.rbc-row-bg {
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 0;
+  overflow: hidden;
+}
+
+.rbc-day-bg {
+  flex: 1 0 0;
+  border-left: 1px solid #e5e7eb;
+}
+
+.rbc-day-bg:first-child {
+  border-left: none;
+}
+
+.rbc-day-bg + .rbc-day-bg {
+  border-left: 1px solid #e5e7eb;
+}
+
+/* Días fuera del mes actual */
+.rbc-off-range-bg {
+  background-color: #f9fafb;
+}
+
+/* Día de hoy */
+.rbc-today {
+  background-color: #ecfdf5 !important;
+}
+
+/* Contenido de las celdas */
+.rbc-row-content {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+}
+
+.rbc-date-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px 8px;
+  text-align: right;
+  border-left: 1px solid #e5e7eb;
+}
+
+.rbc-date-cell:first-child {
+  border-left: none;
+}
+
+.rbc-date-cell > a {
+  color: #374151;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.rbc-date-cell > a:hover {
+  background-color: #e5e7eb;
+}
+
+/* Número del día de hoy */
+.rbc-now > a {
+  background-color: #10b981;
+  color: white;
+  font-weight: 700;
+}
+
+.rbc-now > a:hover {
+  background-color: #059669;
+}
+
+/* Días fuera del rango actual */
+.rbc-off-range {
+  color: #9ca3af;
+}
+
+.rbc-off-range > a {
+  color: #9ca3af;
+}
+
+/* Eventos */
+.rbc-event {
+  padding: 2px 5px;
+  background-color: #3b82f6;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.75rem;
+  margin: 2px 0;
+  transition: opacity 0.2s;
+}
+
+.rbc-event:hover {
+  opacity: 0.85;
+}
+
+.rbc-event.rbc-selected {
+  background-color: #2563eb;
+}
+
+.rbc-event-label {
+  font-size: 0.75rem;
+  color: white;
+}
+
+.rbc-event-content {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Show more link */
+.rbc-show-more {
+  color: #3b82f6;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 5px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.rbc-show-more:hover {
+  text-decoration: underline;
+}
+
+/* Vista de semana y día */
+.rbc-time-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  min-height: 0;
+}
+
+.rbc-time-header {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: row;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-time-header-content {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.rbc-time-content {
+  display: flex;
+  flex: 1 0 0;
+  align-items: flex-start;
+  width: 100%;
+  overflow-y: auto;
+  position: relative;
+}
+
+.rbc-time-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1 0 0;
+  min-height: 100%;
+}
+
+.rbc-timeslot-group {
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-time-slot {
+  flex: 1 0 0;
+  border-top: 1px solid #f3f4f6;
+}
+
+.rbc-label {
+  padding: 0 8px;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.rbc-current-time-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #ef4444;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Vista de agenda */
+.rbc-agenda-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.rbc-agenda-view table.rbc-agenda-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  padding: 8px 12px;
+  border-top: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td + td {
+  border-left: 1px solid #e5e7eb;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr:first-child > td {
+  border-top: none;
+}
+
+.rbc-agenda-view table.rbc-agenda-table thead > tr > th {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  white-space: nowrap;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.rbc-agenda-event-cell {
+  width: 100%;
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+/* Overlay (para eventos en el mes) */
+.rbc-overlay {
+  position: absolute;
+  z-index: 5;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 10px;
+  border-radius: 0.5rem;
+}
+
+.rbc-overlay-header {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* Selectability (dragging for new events) */
+.rbc-addons-dnd .rbc-addons-dnd-resizable {
+  position: relative;
+}
+
+.rbc-addons-dnd .rbc-addons-dnd-resize-anchor {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  cursor: ns-resize;
+}
+
+.rbc-slot-selection {
+  z-index: 10;
+  position: absolute;
+  background-color: rgba(59, 130, 246, 0.3);
+  border: 1px solid #3b82f6;
+  cursor: pointer;
+}
+
+/* Fix para modo oscuro (opcional) */
+.dark .rbc-header {
+  background-color: #1f2937;
+  color: #f9fafb;
+  border-bottom-color: #374151;
+}
+
+.dark .rbc-month-view,
+.dark .rbc-time-view,
+.dark .rbc-agenda-view {
+  border-color: #374151;
+}
+
+.dark .rbc-day-bg {
+  border-left-color: #374151;
+}
+
+.dark .rbc-month-row {
+  border-top-color: #374151;
+}
+
+.dark .rbc-off-range-bg {
+  background-color: #111827;
+}
+
+.dark .rbc-today {
+  background-color: #064e3b !important;
+}
+
+.dark .rbc-date-cell > a {
+  color: #f9fafb;
+}
+
+.dark .rbc-date-cell > a:hover {
+  background-color: #374151;
+}
+
+.dark .rbc-off-range {
+  color: #6b7280;
+}
+
+.dark .rbc-overlay {
+  background-color: #1f2937;
+  border-color: #374151;
+}

@@ -19,6 +19,7 @@ import {
   UserCog,
   FlaskConical,
   BarChart3,
+  Calendar,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { name: "Sala de Espera", href: "/waiting-room", icon: Clock, roles: ['doctor', 'assistant'] },
   { name: "Pre-Consulta", href: "/pre-consultation", icon: ClipboardList, roles: ['doctor', 'assistant'] },
   { name: "Consulta", href: "/consultation", icon: FileText, roles: ['doctor'] },
+  { name: "Calendario", href: "/calendar", icon: Calendar, roles: ['doctor'] },
   { name: "Pacientes", href: "/patients", icon: Users, roles: ['doctor', 'chemist', 'assistant'] },
   { name: "Estadísticas", href: "/analytics", icon: BarChart3, roles: ['doctor'] },
   { name: "Usuarios", href: "/users", icon: User, roles: ['doctor'] },

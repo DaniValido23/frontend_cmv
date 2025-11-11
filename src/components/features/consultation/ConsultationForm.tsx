@@ -76,6 +76,12 @@ export default function ConsultationForm() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
 
+  // Nuevos estados para el sistema de citas
+  const [createAppointment, setCreateAppointment] = useState(false);
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [appointmentTitle, setAppointmentTitle] = useState("");
+  const [appointmentNotes, setAppointmentNotes] = useState("");
+
   // Memoizar sugerencias de diagnósticos para evitar re-cálculos innecesarios
   // Para estudios clínicos, no hay sugerencias predefinidas
   const diagnosisSuggestions = useMemo(() => {
@@ -305,6 +311,11 @@ export default function ConsultationForm() {
           pocus_notes: pocusNotes.trim() || undefined,
           appointment: appointment.trim() || undefined,
           price: parseFloat(price),
+          // Campos del sistema de citas
+          create_appointment: createAppointment,
+          appointment_date: createAppointment && appointmentDate ? new Date(appointmentDate).toISOString() : undefined,
+          appointment_title: createAppointment && appointmentTitle.trim() ? appointmentTitle.trim() : undefined,
+          appointment_notes: createAppointment && appointmentNotes.trim() ? appointmentNotes.trim() : undefined,
         };
 
     // Crear la consulta y generar la receta automáticamente
@@ -517,18 +528,69 @@ export default function ConsultationForm() {
                 </div>
               )}
 
-              {/* Cita */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Cita (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={appointment}
-                  onChange={(e) => setAppointment(e.target.value)}
-                  placeholder="Ej: 15 de enero 2025, Próxima semana..."
-                  className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-                />
+              {/* Sistema de Citas */}
+              <div className="border border-border rounded-lg p-4 space-y-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    id="create-appointment"
+                    type="checkbox"
+                    checked={createAppointment}
+                    onChange={(e) => setCreateAppointment(e.target.checked)}
+                    className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  />
+                  <label htmlFor="create-appointment" className="text-sm font-medium cursor-pointer">
+                    Programar cita de seguimiento
+                  </label>
+                </div>
+
+                {createAppointment && (
+                  <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                    {/* Fecha y hora de la cita */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Fecha y Hora de la Cita *
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={appointmentDate}
+                        onChange={(e) => setAppointmentDate(e.target.value)}
+                        required={createAppointment}
+                        className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+
+                    {/* Título de la cita */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Título de la Cita (Opcional)
+                      </label>
+                      <input
+                        type="text"
+                        value={appointmentTitle}
+                        onChange={(e) => setAppointmentTitle(e.target.value)}
+                        placeholder="Ej: Control de seguimiento, Revisión de exámenes..."
+                        className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Si no se especifica, se generará automáticamente
+                      </p>
+                    </div>
+
+                    {/* Notas de la cita */}
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Notas de la Cita (Opcional)
+                      </label>
+                      <textarea
+                        value={appointmentNotes}
+                        onChange={(e) => setAppointmentNotes(e.target.value)}
+                        placeholder="Notas o recordatorios para la cita..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
