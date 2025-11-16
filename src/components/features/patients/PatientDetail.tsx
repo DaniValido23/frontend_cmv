@@ -24,15 +24,20 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-// Función para parsear fechas en formato DD-MM-YYYY del backend
+// Función para parsear fechas en formato DD-MM-YYYY o YYYY-MM-DD del backend
 const parseBirthDate = (dateString: string): Date => {
-  // El backend puede enviar formato: DD-MM-YYYY
-  if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
-    const [day, month, year] = dateString.split('-');
-    // Crear fecha en formato ISO: YYYY-MM-DD
-    return new Date(`${year}-${month}-${day}`);
+  // Si está en formato ISO YYYY-MM-DD (ej: "2001-05-23")
+  if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = dateString.split('-').map(Number);
+    // Crear fecha en zona horaria local (no UTC) para evitar desfase de días
+    return new Date(year, month - 1, day);
   }
-  // Si ya está en formato ISO o reconocible
+  // Si está en formato DD-MM-YYYY (legacy)
+  if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
+    const [day, month, year] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+  // Fallback
   return new Date(dateString);
 };
 

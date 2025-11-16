@@ -78,19 +78,24 @@ function PatientConsultationsContent({ patientId }: PatientConsultationsContentP
   };
 
   const formatBirthDate = (dateString: string) => {
+    let date: Date;
 
-    if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
-      const [day, month, year] = dateString.split('-');
-      const isoDate = `${year}-${month}-${day}`;
-      const date = new Date(isoDate);
-      return date.toLocaleDateString('es-MX', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
+    // Si está en formato ISO YYYY-MM-DD (ej: "2001-05-23")
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      // Crear fecha en zona horaria local (no UTC) para evitar desfase de días
+      date = new Date(year, month - 1, day);
+    }
+    // Si está en formato DD-MM-YYYY (legacy)
+    else if (dateString.includes('-') && dateString.split('-')[0].length <= 2) {
+      const [day, month, year] = dateString.split('-').map(Number);
+      date = new Date(year, month - 1, day);
+    }
+    // Fallback
+    else {
+      date = new Date(dateString);
     }
 
-    const date = new Date(dateString);
     return date.toLocaleDateString('es-MX', {
       year: 'numeric',
       month: 'long',
