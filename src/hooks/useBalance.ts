@@ -113,16 +113,16 @@ export function useBalanceComparisonLegacy(months: number = 6) {
   });
 }
 
-export function useStudyCategoryBreakdown(month: string) {
+export function useStudyCategoryBreakdown(params?: DateRangeParams) {
   return useQuery({
-    queryKey: ['balance', 'by-category', month],
+    queryKey: ['balance', 'by-category', params],
     queryFn: async () => {
       const response = await api.get<{ data: StudyCategoryBreakdown }>('/financial/by-category', {
-        params: { month },
+        params,
       });
       return response.data.data;
     },
-    enabled: !!month,
+    enabled: !!(params?.from && params?.to),
     staleTime: 2 * 60 * 1000,
   });
 }
@@ -235,19 +235,19 @@ export function getIncomeTrendLabel(
 
 /**
  * Hook for fixed expenses grouped by category
- * @param month - Month in YYYY-MM format
+ * @param params - Date range params with from/to
  */
-export function useFixedExpensesByCategory(month: string) {
+export function useFixedExpensesByCategory(params?: DateRangeParams) {
   return useQuery({
-    queryKey: ['fixed-expenses', 'by-category', month],
+    queryKey: ['fixed-expenses', 'by-category', params],
     queryFn: async () => {
       const response = await api.get<{ data: FixedExpensesByCategory }>(
         '/fixed-expenses/by-category',
-        { params: { month } }
+        { params }
       );
       return response.data.data;
     },
-    enabled: !!month,
+    enabled: !!(params?.from && params?.to),
     staleTime: 2 * 60 * 1000,
   });
 }

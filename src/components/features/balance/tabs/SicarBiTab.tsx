@@ -60,8 +60,8 @@ export default function SicarBiTab({ period }: SicarBiTabProps) {
 
       {/* Row 1: Study Categories + Fixed Expenses */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <StudyCategoryPieChart month={period.start.slice(0, 7)} />
-        <FixedExpensesPieChart month={period.start.slice(0, 7)} />
+        <StudyCategoryPieChart dateParams={dateParams} />
+        <FixedExpensesPieChart dateParams={dateParams} />
       </div>
 
       {/* Row 2: Expenses by Category + Weekday Analysis */}
