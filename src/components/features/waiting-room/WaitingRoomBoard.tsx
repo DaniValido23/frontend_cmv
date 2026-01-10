@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   useWaitingRoom,
-  useCallPatient,
   useChangeWaitingRoomStatus,
 } from "@/hooks/useWaitingRoom";
 import { useDashboardStats } from "@/hooks/useAnalytics";
@@ -27,7 +26,6 @@ export default function WaitingRoomBoard() {
   const { data: waitingRoom, isLoading } = useWaitingRoom(selectedDoctorFilter || undefined);
   const { data: dashboardStats, isLoading: isLoadingStats } = useDashboardStats(selectedDoctorFilter || undefined);
   const { data: doctorsList = [], isLoading: loadingDoctors } = useDoctors();
-  const callMutation = useCallPatient();
   const changeStatusMutation = useChangeWaitingRoomStatus();
 
   const [showRemoveModal, setShowRemoveModal] = useState(false);

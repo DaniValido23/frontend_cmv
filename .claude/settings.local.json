@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s \"C:\\\\Proyectos\\\\CMV\\\\frontend_cmv\\\\src\")",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(node_modules.bintsc --noEmit)",
+      "Bash(node node_modules/typescript/bin/tsc:*)",
+      "Bash(dir \"C:\\\\Proyectos\\\\CMV\\\\frontend_cmv\\\\src\\\\pages\\\\balance\")",
+      "Bash(dir \"C:\\\\Proyectos\\\\CMV\\\\frontend_cmv\\\\src\\\\components\\\\pages\\\\balance\")",
+      "Bash(wc:*)",
+      "Bash(del \"C:\\\\Proyectos\\\\CMV\\\\frontend_cmv\\\\src\\\\hooks\\\\useSicarSales.ts\")",
+      "Bash(cat:*)",
+      "Bash(dir /s \"C:\\\\Proyectos\\\\CMV\\\\frontend_cmv\\\\src\\\\components\\\\pages\\\\estadisticas\")",
+      "Bash(dir /s /b \"C:\\\\Proyectos\\\\CMV\\\\backend_cmv\\\\*.py\")",
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTZlYjcyMTAtZDYzYy00YmQyLTljYTAtM2QxYjU4NWY4MzE1Iiwicm9sZSI6ImRvY3RvciIsImV4cCI6MTc2NzgxOTg4NywibmJmIjoxNzY3Nzc2Njg3LCJpYXQiOjE3Njc3NzY2ODd9.MKkHwNoZbh-4BgDg_TmGatCIvSm1wgUGEKwb8B1H11Y\")",
+      "Bash(go build:*)",
+      "Bash(go vet:*)",
+      "Bash(git -C \"C:/Proyectos/CMV/backend_cmv\" diff --name-only main)"
+    ]
+  }
+}

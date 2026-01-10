@@ -38,6 +38,7 @@ export interface ConsultationDraft {
   recommendations: string;
   pocusNotes: string;
   price: string;
+  studyCategoryId?: string; // Para estudios clínicos
   attachedFileNames: string[]; // Solo guardamos nombres, no los archivos
   appointment: AppointmentData;
   editableVitals: VitalSigns;

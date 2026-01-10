@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useActiveConsultation, useInProgressConsultations, useChangeWaitingRoomStatus } from "@/hooks/useWaitingRoom";
 import { useCreateConsultation, useUploadAttachment } from "@/hooks/useConsultations";
 import { useUpdatePreConsultation } from "@/hooks/usePreConsultations";
+import { useStudyCategories } from "@/hooks/useStudyCategories";
 import { useNavigate } from "@/hooks/useNavigate";
 import { useAuthStore } from "@/stores/authStore";
 import { saveDraft, getDraft, deleteDraft } from "@/stores/consultationDraftStore";
@@ -39,6 +40,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
   const createConsultationMutation = useCreateConsultation();
   const updatePreConsultationMutation = useUpdatePreConsultation();
   const uploadAttachmentMutation = useUploadAttachment();
+  const { data: studyCategories } = useStudyCategories();
 
   // Obtener la consulta seleccionada de la lista
   const consultation = useMemo(() => {
@@ -88,6 +90,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
   const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [studyCategoryId, setStudyCategoryId] = useState<string>("");
 
   // Nuevos estados para el sistema de citas
   const [createAppointment, setCreateAppointment] = useState(false);
@@ -220,10 +223,11 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
     recommendations,
     pocusNotes,
     price,
+    studyCategoryId,
     attachedFileNames: attachedFiles.map(f => f.name),
     appointment: {
       createAppointment,
-      date: appointmentDate ? appointmentDate.toISOString() : null,
+      date: appointmentDate ? appointmentDate.toISOString() : '',
       title: appointmentTitle,
       notes: appointmentNotes,
     },
@@ -249,6 +253,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
     setRecommendations(draft.recommendations || '');
     setPocusNotes(draft.pocusNotes || '');
     setPrice(draft.price || '');
+    setStudyCategoryId(draft.studyCategoryId || '');
 
     if (draft.appointment) {
       setCreateAppointment(draft.appointment.createAppointment || false);
@@ -288,6 +293,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
       setAppointmentDate(null);
       setAppointmentTitle('');
       setAppointmentNotes('');
+      setStudyCategoryId('');
       return;
     }
 
@@ -319,6 +325,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
     setAppointmentDate(null);
     setAppointmentTitle('');
     setAppointmentNotes('');
+    setStudyCategoryId('');
   };
 
   // Función para verificar si hay cambios sin guardar
@@ -332,6 +339,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
       price.trim() !== '' ||
       attachedFiles.length > 0 ||
       createAppointment ||
+      studyCategoryId !== '' ||
       hasVitalSignsChanged()
     );
   };
@@ -382,6 +390,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
     recommendations,
     pocusNotes,
     price,
+    studyCategoryId,
     attachedFiles,
     createAppointment,
     appointmentDate,
@@ -440,9 +449,9 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
 
     // Validaciones según el tipo de registro
     if (recordType === "study") {
-      // Para estudios clínicos, solo validar nombre del estudio
-      if (diagnoses.length === 0) {
-        toast.error("Debes agregar al menos el nombre de un estudio clínico");
+      // Para estudios clínicos, validar categoría seleccionada
+      if (!studyCategoryId) {
+        toast.error("Debes seleccionar una categoría de estudio");
         return;
       }
       if (!price || parseFloat(price) <= 0) {
@@ -469,13 +478,18 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
       }
     }
 
+    // Obtener nombre de la categoría para compatibilidad
+    const selectedCategory = studyCategories?.find(c => c.id === studyCategoryId);
+    const categoryName = selectedCategory?.name || "";
+
     // Preparar datos para envío según el tipo
     const consultationData: any = recordType === "study"
       ? {
           patient_id: consultation.patient.id,
           pre_consultation_id: consultation.pre_consultation?.id,
           consultation_type: recordType,
-          diagnoses: diagnoses,
+          study_category_id: studyCategoryId,
+          diagnoses: [categoryName], // Nombre de categoría en diagnoses para compatibilidad
           price: parseFloat(price),
         }
       : {
@@ -630,50 +644,32 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
         </div>
         <form onSubmit={handleSubmit} className="space-y-6">
           {isStudy ? (
-            /* Para estudios clínicos, solo mostrar nombre del estudio */
+            /* Para estudios clínicos, mostrar dropdown de categorías */
             <div>
-              <label className="block text-sm font-medium mb-2">Nombre del Estudio Clínico</label>
-              <div className="flex gap-2 mb-2">
-                <div className="flex-1">
-                  <Autocomplete
-                    value={currentDiagnosis}
-                    onChange={setCurrentDiagnosis}
-                    onSelect={(value) => {
-                      const exists = diagnoses.some(d => d.toLowerCase() === value.toLowerCase());
-                      if (exists) {
-                        toast.error("Este estudio ya ha sido agregado");
-                        setCurrentDiagnosis("");
-                        return;
-                      }
-                      setDiagnoses([...diagnoses, value]);
-                      setCurrentDiagnosis("");
-                    }}
-                    suggestions={diagnosisSuggestions}
-                    placeholder="Ej: Ultrasonido, Electrocardiograma, Rayos X..."
-                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <Button type="button" onClick={addDiagnosis} size="sm" className="shrink-0">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {diagnoses.map((diagnosis, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 px-3 py-1 bg-success/10 text-success rounded-full text-sm"
-                  >
-                    <span>{diagnosis}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeDiagnosis(index)}
-                      className="hover:text-success"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
+              <label className="block text-sm font-medium mb-2">
+                Categoría del Estudio <span className="text-destructive">*</span>
+              </label>
+              <select
+                value={studyCategoryId}
+                onChange={(e) => setStudyCategoryId(e.target.value)}
+                className="w-full h-10 px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring cursor-pointer"
+                required
+              >
+                <option value="">Seleccionar categoría...</option>
+                {studyCategories?.filter(c => c.is_active).map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
                 ))}
-              </div>
+              </select>
+              {studyCategories?.length === 0 && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  No hay categorías de estudio configuradas.
+                  <a href="/estadisticas/financiero" className="text-primary hover:underline ml-1">
+                    Configurar categorías
+                  </a>
+                </p>
+              )}
             </div>
           ) : (
             <>

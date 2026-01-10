@@ -10,7 +10,7 @@ export default function DashboardStats() {
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats", today],
     queryFn: async () => {
-      const response = await api.get("/analytics/dashboard", {
+      const response = await api.get("/operational/dashboard", {
         params: {
           from: today,
           to: today,

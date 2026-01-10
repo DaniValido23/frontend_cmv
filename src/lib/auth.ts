@@ -31,7 +31,7 @@ export function isChemist(user: User | null): boolean {
 export function canAccessRoute(user: User | null, route: string): boolean {
   if (!user) return false;
 
-  const doctorOnlyRoutes = ["/users", "/analytics", "/consultation"];
+  const doctorOnlyRoutes = ["/users", "/analytics", "/consultation", "/balance"];
   const isDoctorRoute = doctorOnlyRoutes.some((r) => route.startsWith(r));
 
   if (isDoctorRoute) {

@@ -69,7 +69,7 @@ export function useDashboardStats(doctorId?: string) {
   return useQuery({
     queryKey: ["dashboard-stats", doctorId],
     queryFn: async () => {
-      let url = "/analytics/dashboard";
+      let url = "/operational/dashboard";
       if (doctorId) {
         url += `?doctor_id=${doctorId}`;
       }
@@ -86,7 +86,7 @@ export function useConsultationsAnalytics(groupBy: 'day' | 'week' | 'month' | 'y
   return useQuery({
     queryKey: ["consultations-analytics", groupBy],
     queryFn: async () => {
-      const response = await api.get(`/analytics/consultations?group_by=${groupBy}`);
+      const response = await api.get(`/operational/consultations?group_by=${groupBy}`);
       return response.data.data as ConsultationsAnalytics;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
@@ -97,7 +97,7 @@ export function useRevenueAnalytics(groupBy: 'day' | 'week' | 'month' | 'year' =
   return useQuery({
     queryKey: ["revenue-analytics", groupBy],
     queryFn: async () => {
-      const response = await api.get(`/analytics/revenue?group_by=${groupBy}`);
+      const response = await api.get(`/financial/revenue?group_by=${groupBy}`);
       return response.data.data as RevenueAnalytics;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
@@ -109,7 +109,7 @@ export function usePatientWeightHistory(patientId: string | null) {
     queryKey: ["patient-weight-history", patientId],
     queryFn: async () => {
       if (!patientId) return null;
-      const response = await api.get(`/analytics/patients/${patientId}/weight-history`);
+      const response = await api.get(`/clinical/patients/${patientId}/weight-history`);
       return response.data.data as WeightHistory;
     },
     enabled: !!patientId,
@@ -123,8 +123,8 @@ export function useTotalStats() {
     queryFn: async () => {
 
       const [consultationsRes, revenueRes] = await Promise.all([
-        api.get("/analytics/consultations?from=2020-01-01&to=2099-12-31&group_by=year"),
-        api.get("/analytics/revenue?from=2020-01-01&to=2099-12-31&group_by=year"),
+        api.get("/operational/consultations?from=2020-01-01&to=2099-12-31&group_by=year"),
+        api.get("/financial/revenue?from=2020-01-01&to=2099-12-31&group_by=year"),
       ]);
 
       return {
@@ -236,7 +236,7 @@ export function useTopPatients() {
   return useQuery({
     queryKey: ["top-patients"],
     queryFn: async () => {
-      const response = await api.get("/analytics/patients");
+      const response = await api.get("/clinical/patients");
       return response.data.data as TopPatientsResponse;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
@@ -252,7 +252,7 @@ export function useTopSymptoms(limit: number = 10, from?: string, to?: string) {
       if (from) params.append("from", from);
       if (to) params.append("to", to);
 
-      const response = await api.get(`/analytics/top-symptoms?${params.toString()}`);
+      const response = await api.get(`/clinical/top-symptoms?${params.toString()}`);
       return response.data.data as TopSymptomsResponse;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
@@ -268,7 +268,7 @@ export function useTopDiagnoses(limit: number = 10, from?: string, to?: string) 
       if (from) params.append("from", from);
       if (to) params.append("to", to);
 
-      const response = await api.get(`/analytics/top-diagnoses?${params.toString()}`);
+      const response = await api.get(`/clinical/top-diagnoses?${params.toString()}`);
       return response.data.data as TopDiagnosesResponse;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
@@ -284,7 +284,7 @@ export function useTopMedications(limit: number = 10, from?: string, to?: string
       if (from) params.append("from", from);
       if (to) params.append("to", to);
 
-      const response = await api.get(`/analytics/top-medications?${params.toString()}`);
+      const response = await api.get(`/clinical/top-medications?${params.toString()}`);
       return response.data.data as TopMedicationsResponse;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,
@@ -302,7 +302,7 @@ export function useGlucoseHistory(patientId: string | null, startDate?: string, 
       if (endDate) params.append("end_date", endDate);
 
       const queryString = params.toString();
-      const url = `/analytics/patients/${patientId}/glucose-history${queryString ? `?${queryString}` : ''}`;
+      const url = `/clinical/patients/${patientId}/glucose-history${queryString ? `?${queryString}` : ''}`;
 
       const response = await api.get(url);
       return response.data.data as GlucoseHistory;
@@ -323,7 +323,7 @@ export function useBloodPressureHistory(patientId: string | null, startDate?: st
       if (endDate) params.append("end_date", endDate);
 
       const queryString = params.toString();
-      const url = `/analytics/patients/${patientId}/blood-pressure-history${queryString ? `?${queryString}` : ''}`;
+      const url = `/clinical/patients/${patientId}/blood-pressure-history${queryString ? `?${queryString}` : ''}`;
 
       const response = await api.get(url);
       return response.data.data as BloodPressureHistory;
@@ -337,7 +337,7 @@ export function useGenderStats() {
   return useQuery({
     queryKey: ["gender-stats"],
     queryFn: async () => {
-      const response = await api.get("/analytics/gender-stats");
+      const response = await api.get("/clinical/gender-stats");
       return response.data.data as GenderStatsResponse;
     },
     staleTime: QUERY_STALE_TIME.MEDIUM,

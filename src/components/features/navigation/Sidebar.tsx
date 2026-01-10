@@ -36,7 +36,7 @@ const navItems: NavItem[] = [
   { name: "Consulta", href: "/consultation", icon: FileText, roles: ['doctor'] },
   { name: "Calendario", href: "/calendar", icon: Calendar, roles: ['doctor'] },
   { name: "Pacientes", href: "/patients", icon: Users, roles: ['doctor', 'chemist', 'assistant'] },
-  { name: "Estadísticas", href: "/analytics", icon: BarChart3, roles: ['doctor'] },
+  { name: "Estadísticas", href: "/estadisticas/clinico", icon: BarChart3, roles: ['doctor'] },
   { name: "Usuarios", href: "/users", icon: User, roles: ['doctor'] },
 ];
 
@@ -127,7 +127,10 @@ export default function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
             {filteredItems.map((item) => {
-              const isActive = currentPath === item.href;
+              // Para estadísticas, marcar como activo si estamos en cualquier sub-ruta
+              const isActive = item.href.startsWith('/estadisticas')
+                ? currentPath.startsWith('/estadisticas')
+                : currentPath === item.href;
 
               const Icon = item.icon;
 

@@ -41,60 +41,6 @@ export function useAddToWaitingRoom() {
   });
 }
 
-export function useCallPatient() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.put(`/waiting-room/${id}/call`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
-    onError: (error: unknown) => {
-      handleError(error, "Error al llamar paciente");
-    },
-  });
-}
-
-export function useCompleteWaitingRoomEntry() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.put(`/waiting-room/${id}/complete`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
-    onError: (error: unknown) => {
-      handleError(error, "Error al completar entrada");
-    },
-  });
-}
-
-export function useRemoveFromWaitingRoom() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await api.delete(`/waiting-room/${id}`);
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["waiting-room"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-    },
-    onError: (error: unknown) => {
-      handleError(error, "Error al remover de sala de espera");
-    },
-  });
-}
-
 export function useChangeWaitingRoomStatus() {
   const queryClient = useQueryClient();
 
