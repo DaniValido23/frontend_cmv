@@ -64,6 +64,7 @@ export interface CreateConsultationData {
   patient_id: string;
   pre_consultation_id?: string;
   consultation_type: "consultation" | "study";
+  study_category_id?: string;
   symptoms: string[];
   diagnoses: string[];
   medications: Array<{

@@ -8,3 +8,10 @@ export const PatientConsultationsPageLazy = lazy(() => import("./PatientConsulta
 
 export const WaitingRoomPageLazy = lazy(() => import("./WaitingRoomPage"));
 export const PreConsultationPageLazy = lazy(() => import("./PreConsultationPage"));
+
+// Balance General (deprecated - redirect to /estadisticas/financiero)
+export const BalanceDashboardPageLazy = lazy(() => import("./balance/BalanceDashboardPage"));
+
+// Estadísticas unificadas
+export const ClinicoPageLazy = lazy(() => import("./estadisticas/ClinicoPage"));
+export const FinancieroPageLazy = lazy(() => import("./estadisticas/FinancieroPage"));
