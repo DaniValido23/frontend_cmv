@@ -488,7 +488,7 @@ export default function ConsultationForm({ selectedConsultationId }: Consultatio
           patient_id: consultation.patient.id,
           pre_consultation_id: consultation.pre_consultation?.id,
           consultation_type: recordType,
-          study_category_id: studyCategoryId,
+          ...(studyCategoryId && { study_category_id: studyCategoryId }), // Solo enviar si tiene valor
           diagnoses: [categoryName], // Nombre de categoría en diagnoses para compatibilidad
           price: parseFloat(price),
         }

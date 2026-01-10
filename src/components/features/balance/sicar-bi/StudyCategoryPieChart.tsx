@@ -27,12 +27,6 @@ const DEFAULT_COLORS = [
 ];
 
 const formatCurrency = (value: number) => {
-  if (Math.abs(value) >= 1000000) {
-    return `$${(value / 1000000).toFixed(1)}M`;
-  }
-  if (Math.abs(value) >= 1000) {
-    return `$${(value / 1000).toFixed(0)}K`;
-  }
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",

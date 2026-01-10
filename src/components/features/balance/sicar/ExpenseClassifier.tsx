@@ -11,7 +11,8 @@ import BulkClassifyModal from "./BulkClassifyModal";
 type PendingClassifications = Map<string, string>;
 
 export default function ExpenseClassifier() {
-  const { data, isLoading, error } = useUnclassifiedExpenses();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useUnclassifiedExpenses(page);
   const { data: summary } = useSicarExpensesSummary();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
@@ -63,6 +64,7 @@ export default function ExpenseClassifier() {
     try {
       await Promise.all(promises);
       setPendingClassifications(new Map());
+      setPage(1); // Reset to first page after saving
     } catch {
       // El error ya se maneja en el hook con toast
     }
@@ -180,6 +182,35 @@ export default function ExpenseClassifier() {
               pendingClassifications={pendingClassifications}
               onClassify={handlePendingClassification}
             />
+
+            {data && data.total > data.page_size && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Mostrando {expenses.length} de {data.total} gastos
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page === 1}
+                    onClick={() => setPage(p => p - 1)}
+                  >
+                    Anterior
+                  </Button>
+                  <span className="text-sm text-muted-foreground px-2">
+                    Pagina {page} de {Math.ceil(data.total / data.page_size)}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={page >= Math.ceil(data.total / data.page_size)}
+                    onClick={() => setPage(p => p + 1)}
+                  >
+                    Siguiente
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

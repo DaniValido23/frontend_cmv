@@ -18,12 +18,6 @@ interface ExpensesByCategoryChartProps {
 }
 
 const formatCurrency = (value: number) => {
-  if (Math.abs(value) >= 1000000) {
-    return `$${(value / 1000000).toFixed(2)}M`;
-  }
-  if (Math.abs(value) >= 1000) {
-    return `$${(value / 1000).toFixed(1)}K`;
-  }
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
@@ -77,29 +71,12 @@ export default function ExpensesByCategoryChart({
   }
 
   // Transform by_category to chart format (colors assigned automatically from pool)
+  // Solo muestra gastos operativos categorizados, no gastos fijos
   const categories = expenses.by_category.map((cat, i) => ({
     name: cat.category,
     amount: cat.amount,
     color: DEFAULT_COLORS[i % DEFAULT_COLORS.length],
   }));
-
-  // Add fixed and operational if no categories but have totals
-  if (categories.length === 0) {
-    if (expenses.fixed > 0) {
-      categories.push({
-        name: "Gastos Fijos",
-        amount: expenses.fixed,
-        color: "#ef4444",
-      });
-    }
-    if (expenses.operational > 0) {
-      categories.push({
-        name: "Gastos Operativos",
-        amount: expenses.operational,
-        color: "#f97316",
-      });
-    }
-  }
 
   // Sort by amount descending
   const sortedCategories = categories.sort((a, b) => b.amount - a.amount);
@@ -149,6 +126,7 @@ export default function ExpensesByCategoryChart({
     },
     scales: {
       x: {
+        beginAtZero: true,
         grid: {
           display: false,
         },
@@ -179,18 +157,6 @@ export default function ExpensesByCategoryChart({
       <CardContent>
         <div style={{ height: Math.max(180, sortedCategories.length * 40) }}>
           <Bar data={chartData} options={options} />
-        </div>
-
-        {/* Summary of fixed vs operational */}
-        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-          <div className="p-2 bg-muted/50 rounded">
-            <span className="text-muted-foreground">Fijos:</span>
-            <span className="ml-2 font-medium">{formatCurrency(expenses.fixed)}</span>
-          </div>
-          <div className="p-2 bg-muted/50 rounded">
-            <span className="text-muted-foreground">Operativos:</span>
-            <span className="ml-2 font-medium">{formatCurrency(expenses.operational)}</span>
-          </div>
         </div>
       </CardContent>
     </Card>

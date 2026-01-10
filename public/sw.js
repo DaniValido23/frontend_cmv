@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'medical-clinic-v1767743366344';
+const CACHE_VERSION = 'medical-clinic-v__BUILD_TIME__';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 

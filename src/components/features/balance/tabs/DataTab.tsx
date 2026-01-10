@@ -3,14 +3,21 @@ import { ChevronDown, Upload, Receipt, Tag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
 // SICAR components
-import SicarImportForm from "../sicar/SicarImportForm";
+import SicarImportFormCompact from "../sicar/SicarImportFormCompact";
 import SicarImportList from "../sicar/SicarImportList";
+import ExpenseListByCategory from "../sicar/ExpenseListByCategory";
 
 // Expenses components
 import FixedExpenseList from "../expenses/FixedExpenseList";
 
 // Classifier components
 import ExpenseClassifier from "../sicar/ExpenseClassifier";
+
+// Period selector
+import PeriodSelector, {
+  type Period,
+  getCurrentMonthPeriod,
+} from "../PeriodSelector";
 
 interface AccordionSectionProps {
   title: string;
@@ -67,18 +74,23 @@ interface DataTabProps {
 export default function DataTab({ pendingActions }: DataTabProps) {
   const unclassified = pendingActions?.unclassified_expenses ?? 0;
   const unpaidFixed = pendingActions?.unpaid_fixed_expenses ?? 0;
+  const [expensePeriod, setExpensePeriod] = useState<Period>(getCurrentMonthPeriod());
 
   return (
     <div className="space-y-4">
-      {/* Import SICAR */}
+      {/* Import SICAR - Form + History side by side, centered */}
       <AccordionSection
         title="Importar SICAR"
         icon={<Upload className="h-5 w-5" />}
         defaultOpen={true}
       >
-        <div className="space-y-6">
-          <SicarImportForm />
-          <div>
+        <div className="flex flex-col lg:flex-row gap-6 justify-center items-start">
+          {/* Import Form - compact */}
+          <div className="w-full lg:w-80 flex-shrink-0">
+            <SicarImportFormCompact />
+          </div>
+          {/* Import History */}
+          <div className="flex-1 max-w-2xl">
             <h4 className="text-sm font-medium mb-3 text-muted-foreground">
               Historial de Importaciones
             </h4>
@@ -86,6 +98,18 @@ export default function DataTab({ pendingActions }: DataTabProps) {
           </div>
         </div>
       </AccordionSection>
+
+      {/* Expenses List by Category */}
+      <ExpenseListByCategory
+        from={expensePeriod.start}
+        to={expensePeriod.end}
+        headerAction={
+          <PeriodSelector
+            period={expensePeriod}
+            onChange={setExpensePeriod}
+          />
+        }
+      />
 
       {/* Fixed Expenses */}
       <AccordionSection

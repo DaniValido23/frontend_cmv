@@ -18,7 +18,18 @@
       "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTZlYjcyMTAtZDYzYy00YmQyLTljYTAtM2QxYjU4NWY4MzE1Iiwicm9sZSI6ImRvY3RvciIsImV4cCI6MTc2NzgxOTg4NywibmJmIjoxNzY3Nzc2Njg3LCJpYXQiOjE3Njc3NzY2ODd9.MKkHwNoZbh-4BgDg_TmGatCIvSm1wgUGEKwb8B1H11Y\")",
       "Bash(go build:*)",
       "Bash(go vet:*)",
-      "Bash(git -C \"C:/Proyectos/CMV/backend_cmv\" diff --name-only main)"
+      "Bash(git -C \"C:/Proyectos/CMV/backend_cmv\" diff --name-only main)",
+      "Bash(npx xlsx-cli RepMovimientos.xlsx)",
+      "Bash(python temp_query_studies.py:*)",
+      "Bash(python:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2NmMDAyNWItMjFhOC00MGZhLTg5MGQtY2Q5MTc1OGY1OGU3Iiwicm9sZSI6ImRvY3RvciIsImV4cCI6MTc2ODA4MTcyMSwibmJmIjoxNzY4MDM4NTIxLCJpYXQiOjE3NjgwMzg1MjF9.HzzmR4DKSVI36vvwHgX_gL6vwOtLJ3MWDYuh64m3Njc\":*)",
+      "Bash(__NEW_LINE__ echo \"=== Endpoint 1: SICAR Expenses \\(Lista\\) ===\")",
+      "Bash(__NEW_LINE__ curl -s \"http://localhost:8080/api/v1/sicar/expenses?classified=true&from=2025-01-01&to=2025-12-31&page_size=10\" -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(__NEW_LINE__ echo \"\")",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiY2NmMDAyNWItMjFhOC00MGZhLTg5MGQtY2Q5MTc1OGY1OGU3Iiwicm9sZSI6ImRvY3RvciIsImV4cCI6MTc2ODA4MjUzNywibmJmIjoxNzY4MDM5MzM3LCJpYXQiOjE3NjgwMzkzMzd9.0t_C-8awhcj7pHUYYiVxdTd7_7AL7sOhs09j-9y9itc\")",
+      "Bash(__NEW_LINE__ echo \"=== 1. Gastos por Categoría \\(Endpoint gráfica\\) ===\")",
+      "Bash(__NEW_LINE__ echo \"=== 1. Financial Monthly \\(incluye expenses_by_category\\) ===\")",
+      "Bash(__NEW_LINE__ curl -s \"http://localhost:8080/api/v1/financial/monthly?from=2025-01-01&to=2025-12-31\" -H \"Authorization: Bearer $TOKEN\")"
     ]
   }
 }
