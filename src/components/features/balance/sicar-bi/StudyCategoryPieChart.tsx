@@ -3,12 +3,12 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Stethoscope } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
-import { useStudyCategoryBreakdown } from "@/hooks/useBalance";
+import { useStudyCategoryBreakdown, type DateRangeParams } from "@/hooks/useBalance";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface StudyCategoryPieChartProps {
-  month: string; // YYYY-MM format
+  dateParams: DateRangeParams;
 }
 
 const DEFAULT_COLORS = [
@@ -41,8 +41,8 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export default function StudyCategoryPieChart({ month }: StudyCategoryPieChartProps) {
-  const { data, isLoading, error } = useStudyCategoryBreakdown(month);
+export default function StudyCategoryPieChart({ dateParams }: StudyCategoryPieChartProps) {
+  const { data, isLoading, error } = useStudyCategoryBreakdown(dateParams);
 
   if (isLoading) {
     return (

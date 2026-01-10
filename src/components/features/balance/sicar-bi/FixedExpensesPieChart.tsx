@@ -3,12 +3,12 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Wallet, CheckCircle, Clock } from "lucide-react";
 import Spinner from "@/components/ui/Spinner";
-import { useFixedExpensesByCategory } from "@/hooks/useBalance";
+import { useFixedExpensesByCategory, type DateRangeParams } from "@/hooks/useBalance";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 interface FixedExpensesPieChartProps {
-  month: string; // YYYY-MM format
+  dateParams: DateRangeParams;
 }
 
 const DEFAULT_COLORS = [
@@ -41,8 +41,8 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export default function FixedExpensesPieChart({ month }: FixedExpensesPieChartProps) {
-  const { data, isLoading, error } = useFixedExpensesByCategory(month);
+export default function FixedExpensesPieChart({ dateParams }: FixedExpensesPieChartProps) {
+  const { data, isLoading, error } = useFixedExpensesByCategory(dateParams);
 
   if (isLoading) {
     return (
